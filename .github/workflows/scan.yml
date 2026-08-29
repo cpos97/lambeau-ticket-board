@@ -29,6 +29,9 @@ jobs:
           python-version: '3.12'
 
       - name: Scan Ticketmaster and email on a hit
+        # Before the secrets exist this exits non-zero on purpose. Let the job
+        # continue so the board still publishes its "waiting on secrets" state.
+        continue-on-error: true
         env:
           TM_API_KEY:          ${{ secrets.TM_API_KEY }}
           GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -53,6 +56,7 @@ jobs:
         run: |
           mkdir -p _site
           cp dashboard.html _site/index.html
+          cp -r img _site/img
           cp history.jsonl _site/history.jsonl 2>/dev/null || true
       - uses: actions/upload-pages-artifact@v3
         with:
