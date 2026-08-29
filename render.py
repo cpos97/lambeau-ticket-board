@@ -228,9 +228,11 @@ def build_table(latest):
     rows = (latest or {}).get("listings") or []
     if not rows:
         return ('<div class="empty-note">'
-                'The Discovery API reports a price range for the event, not a '
-                'seat-by-seat list.<br>Section and row detail appears here only '
-                'if Ticketmaster\'s seat-map feed answers your key.</div>')
+                'Seat-by-seat detail is not available on a public developer key.'
+                '<br>Ticketmaster\'s seat-map service holds the resale listings '
+                'you see on their website, but it requires a service token '
+                'issued only to their own apps.<br>Use the cross-check links '
+                'below for live resale prices.</div>')
     rows = sorted(rows, key=lambda r: r.get("price", 9e9))[:25]
     out = ['<table><thead><tr>'
            '<th>Price</th><th>Section</th><th>Row</th><th>Together</th>'
