@@ -1,92 +1,90 @@
 <title>Lambeau Ticket Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 
 <style>
 :root{
-  --ground:#F0F2ED; --surface:#FFFFFF; --surface-2:#E8ECE4; --sunk:#DFE4D9;
-  --ink:#131F19; --ink-2:#4E5D53; --ink-3:#7A8880;
-  --line:#D3DACE; --line-strong:#B7C1B2;
+  --ground:#EFF1EC; --glass:rgba(255,255,255,.74); --glass-2:rgba(255,255,255,.52);
+  --sunk:rgba(18,26,22,.045);
+  --ink:#101815; --ink-2:#4C5A53; --ink-3:#7C8A83;
+  --line:rgba(18,26,22,.11); --line-2:rgba(18,26,22,.06);
   --gb-green:#1A3A2C; --gb-gold:#FFB612; --dal-navy:#041E42; --dal-silver:#7C8894;
-  --hit:#9A6600; --hit-bg:#FBF0D6;
-  --warn:#8A4B12; --quiet:#6B7A70;
-  --shadow:0 1px 2px rgba(19,31,25,.06),0 8px 24px -12px rgba(19,31,25,.18);
+  --hit:#8A5A00; --hit-bg:rgba(255,182,18,.16); --hit-line:rgba(255,182,18,.55);
+  --blur:saturate(1.5) blur(22px);
+  --sh:0 1px 2px rgba(16,24,21,.05), 0 12px 32px -16px rgba(16,24,21,.24);
+  --sh-lg:0 2px 4px rgba(16,24,21,.06), 0 24px 60px -24px rgba(16,24,21,.34);
+  --r:16px; --r-sm:10px;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --ground:#0C1311; --surface:#141D19; --surface-2:#1B2622; --sunk:#0F1714;
-    --ink:#E9F0EA; --ink-2:#98A79D; --ink-3:#6E7D74;
-    --line:#25322C; --line-strong:#33443B;
+    --ground:#080C0B; --glass:rgba(24,31,28,.60); --glass-2:rgba(24,31,28,.40);
+    --sunk:rgba(255,255,255,.04);
+    --ink:#E9EFEB; --ink-2:#9BAAA1; --ink-3:#6F7E76;
+    --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.055);
     --gb-green:#2C5A44; --gb-gold:#FFB612; --dal-navy:#0B2E5C; --dal-silver:#8B98A6;
-    --hit:#FFC53D; --hit-bg:#2A2113;
-    --warn:#E0A45C; --quiet:#8A998F;
-    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
+    --hit:#FFC53D; --hit-bg:rgba(255,182,18,.11); --hit-line:rgba(255,182,18,.42);
+    --sh:0 1px 2px rgba(0,0,0,.5), 0 14px 36px -18px rgba(0,0,0,.85);
+    --sh-lg:0 2px 6px rgba(0,0,0,.55), 0 28px 70px -28px rgba(0,0,0,.95);
   }
 }
 :root[data-theme="dark"]{
-  --ground:#0C1311; --surface:#141D19; --surface-2:#1B2622; --sunk:#0F1714;
-  --ink:#E9F0EA; --ink-2:#98A79D; --ink-3:#6E7D74;
-  --line:#25322C; --line-strong:#33443B;
+  --ground:#080C0B; --glass:rgba(24,31,28,.60); --glass-2:rgba(24,31,28,.40);
+  --sunk:rgba(255,255,255,.04);
+  --ink:#E9EFEB; --ink-2:#9BAAA1; --ink-3:#6F7E76;
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.055);
   --gb-green:#2C5A44; --gb-gold:#FFB612; --dal-navy:#0B2E5C; --dal-silver:#8B98A6;
-  --hit:#FFC53D; --hit-bg:#2A2113;
-  --warn:#E0A45C; --quiet:#8A998F;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
+  --hit:#FFC53D; --hit-bg:rgba(255,182,18,.11); --hit-line:rgba(255,182,18,.42);
+  --sh:0 1px 2px rgba(0,0,0,.5), 0 14px 36px -18px rgba(0,0,0,.85);
+  --sh-lg:0 2px 6px rgba(0,0,0,.55), 0 28px 70px -28px rgba(0,0,0,.95);
 }
 
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
   margin:0; background:var(--ground); color:var(--ink);
   font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
 }
-
-/* ---------- fixed photo background: Lambeau Field ---------- */
-#hero{position:fixed; inset:0; z-index:-2; pointer-events:none;
-  background-image:url("img/lambeau.jpg");
-  background-size:cover; background-position:50% 42%;
-  background-repeat:no-repeat; background-attachment:scroll}
-#veil{position:fixed; inset:0; z-index:-1; pointer-events:none;
-  background:
-    linear-gradient(to bottom, rgba(240,242,237,.40) 0%, rgba(240,242,237,.86) 48%,
-                    var(--ground) 86%)}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) #hero{filter:saturate(.72) brightness(.66)}
-  :root:not([data-theme="light"]) #veil{
-    background:linear-gradient(to bottom, rgba(12,19,17,.20) 0%,
-      rgba(12,19,17,.72) 48%, var(--ground) 86%)}
-}
-:root[data-theme="dark"] #hero{filter:saturate(.72) brightness(.66)}
-:root[data-theme="dark"] #veil{
-  background:linear-gradient(to bottom, rgba(12,19,17,.20) 0%,
-    rgba(12,19,17,.72) 48%, var(--ground) 86%)}
-.banner, .wrap{position:relative; z-index:1}
-.tier, .chart-card, .table-scroll, .site, .strip, .setup{
-  backdrop-filter:saturate(1.05) blur(3px)}
-.credit{color:var(--ink-3)}
-.credit a{color:inherit; text-decoration:underline; text-underline-offset:2px}
-
-.wrap{max-width:1080px; margin:0 auto; padding:0 20px 72px}
 h1,h2,h3{margin:0; text-wrap:balance}
 a{color:inherit}
 .mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  font-variant-numeric:tabular-nums}
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum"}
 
-/* ---------- matchup banner ---------- */
-.banner{position:relative; overflow:hidden; margin:0 0 28px; color:#fff;
+/* ---------- Ice Bowl backdrop: sits below the header ---------- */
+#hero{position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background-image:url("img/icebowl.jpg");
+  background-size:cover; background-position:50% 34%; background-repeat:no-repeat}
+#veil{position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(to bottom,
+    rgba(239,241,236,.30) 0%, rgba(239,241,236,.78) 34%,
+    rgba(239,241,236,.95) 58%, var(--ground) 78%)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) #hero{filter:saturate(.85) brightness(.58)}
+  :root:not([data-theme="light"]) #veil{
+    background:linear-gradient(to bottom, rgba(8,12,11,.20) 0%,
+      rgba(8,12,11,.70) 34%, rgba(8,12,11,.92) 58%, var(--ground) 80%)}
+}
+:root[data-theme="dark"] #hero{filter:saturate(.85) brightness(.58)}
+:root[data-theme="dark"] #veil{
+  background:linear-gradient(to bottom, rgba(8,12,11,.20) 0%,
+    rgba(8,12,11,.70) 34%, rgba(8,12,11,.92) 58%, var(--ground) 80%)}
+
+.wrap{max-width:1120px; margin:0 auto; padding:0 24px 96px; position:relative; z-index:1}
+
+/* ---------- matchup banner (unchanged) ---------- */
+.banner{position:relative; overflow:hidden; margin:0 0 32px; color:#fff; z-index:1;
   background:var(--dal-navy); border-bottom:3px solid var(--gb-gold)}
 .banner::before{content:""; position:absolute; inset:0; background:var(--gb-green);
   clip-path:polygon(0 0, 58% 0, 42% 100%, 0 100%)}
-.banner-inner{position:relative; max-width:1080px; margin:0 auto;
-  padding:34px 20px 30px; display:flex; align-items:center;
+.banner-inner{position:relative; max-width:1120px; margin:0 auto;
+  padding:34px 24px 30px; display:flex; align-items:center;
   justify-content:space-between; gap:16px; flex-wrap:wrap}
 .team{display:flex; flex-direction:column; gap:2px; min-width:0}
 .team.away{text-align:right; margin-left:auto}
-.team-city{font-family:"Public Sans",sans-serif; font-size:.72rem;
-  letter-spacing:.16em; text-transform:uppercase; opacity:.72}
+.team-city{font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; opacity:.72}
 .team-name{font-family:"Big Shoulders Display","Public Sans",sans-serif;
-  font-weight:800; font-size:clamp(2.1rem,6vw,3.4rem); line-height:.92;
-  letter-spacing:.005em}
+  font-weight:800; font-size:clamp(2.1rem,6vw,3.4rem); line-height:.92}
 .team.home .team-name{color:var(--gb-gold)}
 .team.away .team-name{color:#C9D2DB}
 .vs{font-family:"Big Shoulders Display",sans-serif; font-weight:500;
@@ -98,106 +96,123 @@ a{color:inherit}
 .kick b{font-weight:600; color:var(--gb-gold)}
 
 /* ---------- status strip ---------- */
-.strip{display:flex; flex-wrap:wrap; gap:10px 26px; align-items:center;
-  padding:12px 16px; margin-bottom:28px; border:1px solid var(--line);
-  border-radius:3px; background:var(--surface); font-size:.82rem; color:var(--ink-2)}
-.dot{display:inline-block; width:7px; height:7px; border-radius:50%;
-  margin-right:7px; vertical-align:middle}
-.dot.ok{background:#3E9B5F} .dot.wait{background:var(--gb-gold)}
+.strip{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:56px}
+.chip{display:inline-flex; align-items:center; gap:8px; padding:8px 15px;
+  border-radius:999px; border:1px solid var(--line); background:var(--glass);
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  font-size:.8rem; color:var(--ink-2); box-shadow:var(--sh)}
+.chip b{color:var(--ink); font-weight:600}
+.dot{width:6px; height:6px; border-radius:50%; flex:none}
+.dot.ok{background:#3FA168; box-shadow:0 0 0 3px rgba(63,161,104,.18)}
+.dot.wait{background:var(--gb-gold); box-shadow:0 0 0 3px rgba(255,182,18,.20)}
 .dot.off{background:var(--ink-3)}
 
-/* ---------- section ---------- */
-section{margin-bottom:44px}
-.sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:14px;
-  padding-bottom:9px; border-bottom:2px solid var(--ink)}
+/* ---------- sections ---------- */
+section{margin-bottom:72px}
+.sec-head{display:flex; align-items:flex-end; gap:18px; margin-bottom:22px; flex-wrap:wrap}
+.eyebrow{font-size:.68rem; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--gb-gold); font-weight:600; display:block; margin-bottom:6px}
 .sec-head h2{font-family:"Big Shoulders Display",sans-serif; font-weight:700;
-  font-size:1.6rem; letter-spacing:.02em; text-transform:uppercase}
-.sec-head .note{font-size:.78rem; color:var(--ink-3); margin-left:auto;
-  letter-spacing:.03em}
+  font-size:clamp(1.9rem,3.6vw,2.5rem); letter-spacing:.005em; line-height:1;
+  text-transform:uppercase}
+.sec-head .note{font-size:.8rem; color:var(--ink-3); margin-left:auto;
+  padding-bottom:3px}
 
-/* ---------- tier cards ---------- */
-.tiers{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.tier{background:var(--surface); border:1px solid var(--line); border-radius:3px;
-  padding:20px 20px 18px; box-shadow:var(--shadow); position:relative;
-  display:flex; flex-direction:column; gap:10px}
-.tier.hit{border-color:var(--gb-gold); background:var(--hit-bg)}
-.tier-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
-.tier-label{font-size:.7rem; letter-spacing:.15em; text-transform:uppercase;
+/* ---------- cards ---------- */
+.card{background:var(--glass); border:1px solid var(--line); border-radius:var(--r);
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  box-shadow:var(--sh)}
+.tiers{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.tier{padding:24px; display:flex; flex-direction:column; gap:14px}
+.tier.hit{border-color:var(--hit-line); background:
+  linear-gradient(var(--hit-bg),var(--hit-bg)), var(--glass)}
+.tier-top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px}
+.tier-label{font-size:.66rem; letter-spacing:.16em; text-transform:uppercase;
   color:var(--ink-3); font-weight:600}
 .tier h3{font-family:"Big Shoulders Display",sans-serif; font-weight:700;
-  font-size:1.35rem; letter-spacing:.01em; margin-top:2px}
-.pill{font-size:.66rem; letter-spacing:.11em; text-transform:uppercase;
-  font-weight:600; padding:4px 9px; border-radius:2px; white-space:nowrap;
-  border:1px solid var(--line-strong); color:var(--ink-2); background:var(--surface-2)}
-.pill.hit{background:var(--gb-gold); border-color:var(--gb-gold); color:#20180A}
-.pill.none{color:var(--ink-3)}
+  font-size:1.5rem; letter-spacing:.01em; margin-top:5px; line-height:1.05}
+.pill{font-size:.63rem; letter-spacing:.12em; text-transform:uppercase;
+  font-weight:600; padding:5px 10px; border-radius:999px; white-space:nowrap;
+  border:1px solid var(--line); color:var(--ink-2); background:var(--sunk)}
+.pill.hit{background:var(--gb-gold); border-color:transparent; color:#231A08}
 .price{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
-  font-weight:600; font-size:2.5rem; line-height:1; letter-spacing:-.02em}
+  font-weight:600; font-size:2.9rem; line-height:1; letter-spacing:-.035em}
 .tier.hit .price{color:var(--hit)}
-.price .cur{font-size:1.3rem; vertical-align:.42em; opacity:.55; margin-right:1px}
-.price.empty{color:var(--ink-3); font-size:1.5rem; font-weight:400}
-.tier-meta{font-size:.79rem; color:var(--ink-2); line-height:1.45}
-.tier-meta code{font-family:"IBM Plex Mono",monospace; font-size:.94em;
-  background:var(--surface-2); padding:1px 5px; border-radius:2px}
-.tier-foot{margin-top:auto; padding-top:10px; border-top:1px dashed var(--line);
-  font-size:.74rem; color:var(--ink-3); letter-spacing:.02em}
+.price .cur{font-size:1.4rem; vertical-align:.45em; opacity:.5; margin-right:2px}
+.price.empty{color:var(--ink-3); font-size:1.6rem; font-weight:400; letter-spacing:0}
+.tier-meta{font-size:.82rem; color:var(--ink-2); line-height:1.55}
+.tier-meta code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--sunk); padding:2px 6px; border-radius:5px; color:var(--ink)}
+.tier-foot{margin-top:auto; padding-top:14px; border-top:1px solid var(--line-2);
+  font-size:.75rem; color:var(--ink-3)}
+
+/* ---------- range panel ---------- */
+.range{padding:26px 28px; display:flex; gap:36px; flex-wrap:wrap; align-items:center}
+.range-item{display:flex; flex-direction:column; gap:5px}
+.range-item .k{font-size:.66rem; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600}
+.range-item .v{font-family:"IBM Plex Mono",monospace; font-weight:600;
+  font-size:1.75rem; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.range-bar{flex:1 1 220px; min-width:200px}
+.range-track{height:8px; border-radius:999px; background:var(--sunk);
+  border:1px solid var(--line-2); overflow:hidden}
+.range-fill{height:100%; border-radius:999px;
+  background:linear-gradient(90deg, var(--gb-gold), var(--gb-green))}
+.range-cap{display:flex; justify-content:space-between; margin-top:8px;
+  font-size:.72rem; color:var(--ink-3)}
 
 /* ---------- chart ---------- */
-.chart-card{background:var(--surface); border:1px solid var(--line);
-  border-radius:3px; padding:18px 18px 12px; box-shadow:var(--shadow)}
-#spark{display:block; width:100%; height:190px}
-.legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px;
-  font-size:.76rem; color:var(--ink-2)}
-.swatch{display:inline-block; width:14px; height:3px; margin-right:6px;
+.chart-card{padding:22px 22px 14px}
+#spark{display:block; width:100%; height:210px}
+.legend{display:flex; gap:20px; flex-wrap:wrap; margin-top:12px;
+  font-size:.77rem; color:var(--ink-2)}
+.swatch{display:inline-block; width:16px; height:3px; margin-right:7px;
   vertical-align:middle; border-radius:2px}
-.empty-note{padding:40px 8px; text-align:center; color:var(--ink-3);
-  font-size:.88rem}
+.empty-note{padding:48px 20px; text-align:center; color:var(--ink-3);
+  font-size:.88rem; line-height:1.6}
 
 /* ---------- table ---------- */
-.table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:3px;
-  background:var(--surface)}
-table{border-collapse:collapse; width:100%; min-width:560px; font-size:.87rem}
-th{text-align:left; font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
-  color:var(--ink-3); font-weight:600; padding:11px 16px;
-  border-bottom:1px solid var(--line-strong); background:var(--sunk)}
-td{padding:11px 16px; border-bottom:1px solid var(--line)}
-tr:last-child td{border-bottom:none}
+.table-scroll{overflow-x:auto; border-radius:var(--r)}
+table{border-collapse:collapse; width:100%; min-width:580px; font-size:.87rem}
+th{text-align:left; font-size:.65rem; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600; padding:14px 20px;
+  border-bottom:1px solid var(--line)}
+td{padding:13px 20px; border-bottom:1px solid var(--line-2)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sunk)}
 td.num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
   font-weight:500}
-.prime{display:inline-block; margin-left:8px; font-size:.62rem; font-weight:600;
+.prime{display:inline-block; margin-left:9px; font-size:.6rem; font-weight:600;
   letter-spacing:.1em; text-transform:uppercase; color:var(--hit);
-  border:1px solid var(--hit); padding:1px 5px; border-radius:2px}
+  border:1px solid var(--hit-line); padding:2px 7px; border-radius:999px}
 
 /* ---------- cross-check ---------- */
-.sites{display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
-.site{display:flex; flex-direction:column; gap:3px; padding:14px 16px;
-  background:var(--surface); border:1px solid var(--line); border-radius:3px;
-  text-decoration:none; transition:border-color .14s, transform .14s}
-.site:hover,.site:focus-visible{border-color:var(--gb-gold); transform:translateY(-1px)}
+.lede{margin:0 0 22px; font-size:.9rem; color:var(--ink-2); max-width:64ch}
+.sites{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.site{display:flex; flex-direction:column; gap:5px; padding:18px 20px;
+  border-radius:var(--r-sm); text-decoration:none;
+  transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease}
+.site:hover,.site:focus-visible{transform:translateY(-2px);
+  border-color:var(--hit-line); box-shadow:var(--sh-lg)}
 .site-name{font-family:"Big Shoulders Display",sans-serif; font-weight:700;
-  font-size:1.15rem; letter-spacing:.02em}
-.site-sub{font-size:.74rem; color:var(--ink-3)}
+  font-size:1.2rem; letter-spacing:.015em}
+.site-sub{font-size:.75rem; color:var(--ink-3); line-height:1.5}
 
-/* ---------- setup ---------- */
-.setup{background:var(--surface-2); border:1px solid var(--line);
-  border-left:3px solid var(--gb-gold); border-radius:3px; padding:18px 20px}
-.setup ol{margin:10px 0 0; padding-left:20px; font-size:.88rem; color:var(--ink-2)}
-.setup li{margin-bottom:8px}
-.setup code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
-  background:var(--sunk); padding:2px 6px; border-radius:2px; color:var(--ink)}
-footer{border-top:1px solid var(--line); padding-top:18px; font-size:.78rem;
-  color:var(--ink-3); line-height:1.6}
-:focus-visible{outline:2px solid var(--gb-gold); outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+footer{border-top:1px solid var(--line); padding-top:24px; font-size:.78rem;
+  color:var(--ink-3); line-height:1.65}
+footer p{margin:0 0 8px}
+footer a{color:inherit; text-decoration:underline; text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--gb-gold); outline-offset:3px; border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; scroll-behavior:auto}}
 @media (max-width:560px){
-  .banner-inner{padding:26px 20px 24px}
   .vs{display:none}
   .team.away{text-align:left; margin-left:0}
-  .price{font-size:2.1rem}
+  .price{font-size:2.3rem}
+  .range{gap:24px}
 }
 </style>
 
-<div id="hero" role="img" aria-label="Lambeau Field, Green Bay"></div>
+<div id="hero" role="img" aria-label="The Ice Bowl: Packers and Cowboys at the line of scrimmage, Lambeau Field, 1967"></div>
 <div id="veil"></div>
 
 <div class="banner">
@@ -223,73 +238,67 @@ footer{border-top:1px solid var(--line); padding-top:18px; font-size:.78rem;
 <div class="wrap">
 
   <div class="strip">
-    <span><span class="dot __STATUS_CLASS__"></span>__STATUS_TEXT__</span>
-    <span>Last scan <b class="mono">__LAST_SCAN__</b></span>
-    <span>Scans logged <b class="mono">__SCAN_COUNT__</b></span>
-    <span>Watching <b class="mono">2&ndash;4 seats</b></span>
-    <span>Alerts to <b class="mono">__EMAIL__</b></span>
+    <span class="chip"><span class="dot __STATUS_CLASS__"></span>__STATUS_TEXT__</span>
+    <span class="chip">Last scan <b class="mono">__LAST_SCAN__</b></span>
+    <span class="chip">Scans logged <b class="mono">__SCAN_COUNT__</b></span>
+    <span class="chip">Watching <b class="mono">2&ndash;4 seats</b></span>
+    <span class="chip">Alerts to <b class="mono">__EMAIL__</b></span>
   </div>
-
-  __SETUP_BLOCK__
 
   <section>
     <div class="sec-head">
-      <h2>The Board</h2>
-      <span class="note">Ticketmaster all-in price, per ticket</span>
+      <div><span class="eyebrow">Live from Ticketmaster</span><h2>The Board</h2></div>
+      <span class="note">All-in price, per ticket</span>
     </div>
     <div class="tiers">__TIER_CARDS__</div>
   </section>
 
   <section>
     <div class="sec-head">
-      <h2>Price History</h2>
-      <span class="note">Every scan since tracking began</span>
+      <div><span class="eyebrow">Discovery API</span><h2>Market Range</h2></div>
+      <span class="note">Refreshed upstream hourly</span>
     </div>
-    <div class="chart-card">
-      __CHART_BODY__
-    </div>
+    __RANGE_PANEL__
   </section>
 
   <section>
     <div class="sec-head">
-      <h2>Cheapest Listings</h2>
+      <div><span class="eyebrow">Since tracking began</span><h2>Price History</h2></div>
+      <span class="note">One point per scan</span>
+    </div>
+    <div class="card chart-card">__CHART_BODY__</div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div><span class="eyebrow">Seat detail</span><h2>Cheapest Listings</h2></div>
       <span class="note">__LISTING_NOTE__</span>
     </div>
-    __LISTINGS_TABLE__
+    <div class="card table-scroll">__LISTINGS_TABLE__</div>
   </section>
 
   <section>
     <div class="sec-head">
-      <h2>Cross-Check Before You Buy</h2>
-      <span class="note">Opens each site's page for this game</span>
+      <div><span class="eyebrow">Before you buy</span><h2>Cross-Check</h2></div>
     </div>
-    <p style="margin:0 0 14px;font-size:.88rem;color:var(--ink-2);max-width:66ch">
-      The scanner only reads Ticketmaster, which is the one market with a public API.
-      Resale prices for the same seats routinely differ by 20&ndash;40% across these
-      sites, and fee structures differ on top of that. Check them by hand before
-      pulling the trigger on anything the board flags.
+    <p class="lede">
+      Only Ticketmaster has a public API, so it is the only market scanned here.
+      Resale prices for identical seats routinely differ 20&ndash;40% across the
+      sites below, and fee structures differ on top of that. Check by hand before
+      committing to anything the board flags.
     </p>
     <div class="sites">__SITE_LINKS__</div>
   </section>
 
   <footer>
-    <p style="margin:0 0 6px">
-      Generated by <span class="mono">watch.py</span> on __GENERATED__.
-      This page is a snapshot &mdash; it does not update on its own. Re-run the
-      scanner to refresh it.
-    </p>
-    <p class="credit" style="margin:0 0 6px">
-      Background photograph &ldquo;Lambeau Field &ndash; Green Bay, WI&rdquo; by
-      <a href="https://commons.wikimedia.org/wiki/File:Lambeau_Field_-_Green_Bay,_WI.jpeg"
-         target="_blank" rel="noopener noreferrer">Chad Davis</a>, licensed
-      <a href="https://creativecommons.org/licenses/by/2.0/"
-         target="_blank" rel="noopener noreferrer">CC BY 2.0</a>. Resized for web.
-    </p>
-    <p style="margin:0">
-      Prices are Ticketmaster's all-in figures and are refreshed upstream at most
-      once per hour. Nothing here is a purchase; every buy happens on the ticket
-      site itself.
-    </p>
+    <p>Rebuilt <b class="mono">__GENERATED__</b> by the scanner. This page is a
+      snapshot; it refreshes when the scan runs, not in your browser.</p>
+    <p>Prices come from the
+      <a href="https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/"
+         target="_blank" rel="noopener noreferrer">Ticketmaster Discovery API</a>
+      and are all-in figures, refreshed upstream at most once per hour. Nothing is
+      purchased here &mdash; every buy happens on the ticket site itself.</p>
+    <p>Background: the Ice Bowl, 1967 NFL Championship at Lambeau Field.</p>
   </footer>
 </div>
 
@@ -297,102 +306,87 @@ footer{border-top:1px solid var(--line); padding-top:18px; font-size:.78rem;
 (function(){
   var DATA = __DATA_JSON__;
 
-  /* ---- countdown to kickoff (Oct 18 2026, 7:20 PM CT = 00:20 UTC Oct 19) ---- */
   var kickoff = Date.parse("2026-10-19T00:20:00Z");
   var el = document.getElementById("countdown");
   if (el) {
     var days = Math.floor((kickoff - Date.now()) / 86400000);
-    el.innerHTML = days > 0
-      ? "<b>" + days + " days</b> to kickoff"
-      : (days === 0 ? "<b>Today</b>" : "Game has passed");
+    el.innerHTML = days > 0 ? "<b>" + days + " days</b> to kickoff"
+                 : (days === 0 ? "<b>Today</b>" : "Game has passed");
   }
 
-  /* ---- price history sparkline ---- */
   var cv = document.getElementById("spark");
   if (!cv || !DATA.series || !DATA.series.length) return;
-
   function css(n){ return getComputedStyle(document.documentElement)
     .getPropertyValue(n).trim(); }
 
   function draw(){
     var dpr = window.devicePixelRatio || 1;
     var w = cv.clientWidth, h = cv.clientHeight;
-    cv.width = w * dpr; cv.height = h * dpr;
+    cv.width = w*dpr; cv.height = h*dpr;
     var g = cv.getContext("2d");
-    g.setTransform(dpr,0,0,dpr,0,0);
-    g.clearRect(0,0,w,h);
+    g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
 
-    var padL = 52, padR = 14, padT = 14, padB = 26;
-    var iw = w - padL - padR, ih = h - padT - padB;
+    var padL=56, padR=16, padT=16, padB=28;
+    var iw=w-padL-padR, ih=h-padT-padB;
 
-    var all = [];
+    var all=[];
     DATA.series.forEach(function(s){ s.points.forEach(function(p){
       if (p.v != null) all.push(p.v); }); });
     if (!all.length) return;
-    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
-    if (hi === lo){ hi = lo + 10; lo = Math.max(0, lo - 10); }
-    var pad = (hi - lo) * 0.12; lo = Math.max(0, lo - pad); hi = hi + pad;
+    var lo=Math.min.apply(null,all), hi=Math.max.apply(null,all);
+    if (hi===lo){ hi=lo+10; lo=Math.max(0,lo-10); }
+    var pad=(hi-lo)*0.14; lo=Math.max(0,lo-pad); hi=hi+pad;
 
-    var n = DATA.labels.length;
-    function X(i){ return padL + (n <= 1 ? iw/2 : (i/(n-1))*iw); }
-    function Y(v){ return padT + ih - ((v - lo)/(hi - lo))*ih; }
+    var n=DATA.labels.length;
+    function X(i){ return padL + (n<=1 ? iw/2 : (i/(n-1))*iw); }
+    function Y(v){ return padT + ih - ((v-lo)/(hi-lo))*ih; }
 
-    /* grid + y axis */
-    g.strokeStyle = css("--line"); g.lineWidth = 1;
-    g.fillStyle = css("--ink-3");
-    g.font = '500 10px "IBM Plex Mono", monospace';
-    g.textAlign = "right"; g.textBaseline = "middle";
-    for (var k = 0; k <= 3; k++){
-      var v = lo + (hi - lo) * k/3, y = Math.round(Y(v)) + .5;
-      g.beginPath(); g.moveTo(padL, y); g.lineTo(w - padR, y); g.stroke();
-      g.fillText("$" + Math.round(v), padL - 9, y);
+    g.strokeStyle=css("--line-2"); g.lineWidth=1;
+    g.fillStyle=css("--ink-3");
+    g.font='500 10px "IBM Plex Mono", monospace';
+    g.textAlign="right"; g.textBaseline="middle";
+    for (var k=0;k<=3;k++){
+      var v=lo+(hi-lo)*k/3, y=Math.round(Y(v))+.5;
+      g.beginPath(); g.moveTo(padL,y); g.lineTo(w-padR,y); g.stroke();
+      g.fillText("$"+Math.round(v), padL-10, y);
     }
 
     DATA.series.forEach(function(s){
-      var pts = [];
-      s.points.forEach(function(p, i){ if (p.v != null) pts.push([X(i), Y(p.v)]); });
+      var pts=[];
+      s.points.forEach(function(p,i){ if (p.v!=null) pts.push([X(i),Y(p.v)]); });
       if (!pts.length) return;
-      var col = css(s.token) || s.fallback;
-
-      if (s.fill && pts.length > 1){
-        var grad = g.createLinearGradient(0, padT, 0, padT + ih);
-        grad.addColorStop(0, col + "38"); grad.addColorStop(1, col + "00");
-        g.beginPath(); g.moveTo(pts[0][0], padT + ih);
-        pts.forEach(function(p){ g.lineTo(p[0], p[1]); });
-        g.lineTo(pts[pts.length-1][0], padT + ih);
-        g.closePath(); g.fillStyle = grad; g.fill();
+      var col=css(s.token)||s.fallback;
+      if (s.fill && pts.length>1){
+        var grad=g.createLinearGradient(0,padT,0,padT+ih);
+        grad.addColorStop(0,col+"3D"); grad.addColorStop(1,col+"00");
+        g.beginPath(); g.moveTo(pts[0][0],padT+ih);
+        pts.forEach(function(p){ g.lineTo(p[0],p[1]); });
+        g.lineTo(pts[pts.length-1][0],padT+ih); g.closePath();
+        g.fillStyle=grad; g.fill();
       }
-
       g.beginPath();
-      pts.forEach(function(p, i){ i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); });
-      g.strokeStyle = col; g.lineWidth = 2; g.lineJoin = "round";
+      pts.forEach(function(p,i){ i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]); });
+      g.strokeStyle=col; g.lineWidth=2.25; g.lineJoin="round"; g.lineCap="round";
       g.stroke();
-
-      /* emphasized endpoint */
-      var last = pts[pts.length - 1];
-      g.beginPath(); g.arc(last[0], last[1], 3.5, 0, Math.PI*2);
-      g.fillStyle = col; g.fill();
-      g.beginPath(); g.arc(last[0], last[1], 6, 0, Math.PI*2);
-      g.strokeStyle = col + "55"; g.lineWidth = 1.5; g.stroke();
+      var last=pts[pts.length-1];
+      g.beginPath(); g.arc(last[0],last[1],3.5,0,6.2832); g.fillStyle=col; g.fill();
+      g.beginPath(); g.arc(last[0],last[1],7,0,6.2832);
+      g.strokeStyle=col+"4D"; g.lineWidth=1.5; g.stroke();
     });
 
-    /* x labels: first and last only */
-    g.fillStyle = css("--ink-3"); g.textBaseline = "top";
-    g.textAlign = "left";
-    g.fillText(DATA.labels[0], padL, padT + ih + 8);
-    if (n > 1){ g.textAlign = "right";
-      g.fillText(DATA.labels[n-1], w - padR, padT + ih + 8); }
+    g.fillStyle=css("--ink-3"); g.textBaseline="top"; g.textAlign="left";
+    g.fillText(DATA.labels[0], padL, padT+ih+10);
+    if (n>1){ g.textAlign="right";
+      g.fillText(DATA.labels[n-1], w-padR, padT+ih+10); }
   }
 
   draw();
   var t; window.addEventListener("resize", function(){
-    clearTimeout(t); t = setTimeout(draw, 120); });
+    clearTimeout(t); t=setTimeout(draw,120); });
   if (window.matchMedia){
-    var mq = window.matchMedia("(prefers-color-scheme: dark)");
-    (mq.addEventListener ? mq.addEventListener.bind(mq,"change")
-                         : mq.addListener.bind(mq))(draw);
+    var mq=window.matchMedia("(prefers-color-scheme: dark)");
+    (mq.addEventListener?mq.addEventListener.bind(mq,"change")
+                        :mq.addListener.bind(mq))(draw);
   }
 })();
 </script>
-
-

@@ -1,9 +1,8 @@
 # Image credits
 
-`lambeau.jpg` — "Lambeau Field - Green Bay, WI" by **Chad Davis**
-Licensed **CC BY 2.0**. Cropped and resized for web use.
+`icebowl.jpg` — the Ice Bowl, 1967 NFL Championship Game, Packers vs Cowboys
+at Lambeau Field. Supplied by the site owner.
 
-- Source: https://commons.wikimedia.org/wiki/File:Lambeau_Field_-_Green_Bay,_WI.jpeg
-- License: https://creativecommons.org/licenses/by/2.0/
-
-Attribution is displayed in the footer of the dashboard, as the license requires.
+This is copyrighted press photography. It is used here on a personal,
+non-commercial dashboard. Replace it if the site is ever used commercially or
+promoted publicly.

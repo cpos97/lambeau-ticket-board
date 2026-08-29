@@ -80,31 +80,6 @@ def fmt_ts(iso, fallback="never"):
 
 # ------------------------------------------------------------------ builders
 
-def build_setup(history):
-    if history:
-        return ""
-    return """<section><div class="setup">
-  <h3 style="font-family:'Big Shoulders Display',sans-serif;font-size:1.25rem;
-    letter-spacing:.02em;text-transform:uppercase">Waiting on four secrets</h3>
-  <p style="margin:6px 0 0;font-size:.88rem;color:var(--ink-2)">
-    The scanner runs on GitHub's servers every 30 minutes, but it stays idle
-    until these are stored in the repository under
-    <code>Settings &rsaquo; Secrets and variables &rsaquo; Actions</code>.
-    Nothing secret is ever committed to the repo.</p>
-  <ol>
-    <li><code>TM_API_KEY</code> &mdash; register at
-      <code>developer.ticketmaster.com</code>, create an app, copy the Consumer Key.
-      Free, 5,000 calls a day.</li>
-    <li><code>GMAIL_APP_PASSWORD</code> &mdash; generate a 16-character app password
-      at <code>myaccount.google.com/apppasswords</code>. A normal Gmail password
-      will not authenticate over SMTP.</li>
-    <li><code>EMAIL_FROM</code> and <code>EMAIL_TO</code> &mdash; the Gmail address
-      sending the alert, and the address receiving it. Kept in secrets so the
-      address never appears in a public repository.</li>
-  </ol>
-</div></section>"""
-
-
 def build_tiers(cfg, latest, state):
     tier_lows = (latest or {}).get("tier_lows") or {}
     hit_tiers = {a["tier"] for a in ((latest or {}).get("alerts") or [])}
@@ -152,7 +127,7 @@ def build_tiers(cfg, latest, state):
                 else "No baseline recorded yet")
 
         cards.append(
-            '<article class="tier{hit}">'
+            '<article class="card tier{hit}">'
             '<div class="tier-top"><div>'
             '<div class="tier-label">{lab}</div><h3>{name}</h3>'
             '</div>{pill}</div>{price}'
@@ -171,9 +146,8 @@ def build_tiers(cfg, latest, state):
 def build_chart(history):
     usable = [h for h in history if (h.get("tier_lows") or h.get("event_min"))]
     if len(usable) < 2:
-        body = ('<div class="empty-note">Two scans are needed before a trend '
-                'line means anything.<br>Currently logged: '
-                '<b>{}</b>.</div>'.format(len(usable)))
+        body = ('<div class="empty-note">A trend needs at least two scans.'
+                '<br>Logged so far: <b>{}</b>.</div>'.format(len(usable)))
         return body, {"labels": [], "series": []}
 
     labels = [fmt_ts(h.get("ts"), "?") for h in usable]
@@ -197,16 +171,38 @@ def build_chart(history):
     return body, {"labels": labels, "series": series}
 
 
+def build_range(latest):
+    lo = (latest or {}).get("event_min")
+    hi = (latest or {}).get("event_max")
+    if not isinstance(lo, (int, float)) or not isinstance(hi, (int, float)):
+        return ('<div class="card"><div class="empty-note">No range reported yet. '
+                'The Discovery API returns a min and max once the scanner has '
+                'run with a valid key.</div></div>')
+    spread = hi - lo
+    pct = 0 if hi <= 0 else max(4, min(100, (lo / hi) * 100))
+    return ('<div class="card range">'
+            '<div class="range-item"><span class="k">Cheapest</span>'
+            '<span class="v">${:,.0f}</span></div>'
+            '<div class="range-item"><span class="k">Most expensive</span>'
+            '<span class="v">${:,.0f}</span></div>'
+            '<div class="range-item"><span class="k">Spread</span>'
+            '<span class="v">${:,.0f}</span></div>'
+            '<div class="range-bar"><div class="range-track">'
+            '<div class="range-fill" style="width:{:.1f}%"></div></div>'
+            '<div class="range-cap"><span>floor</span>'
+            '<span>ceiling</span></div></div>'
+            '</div>').format(lo, hi, spread, pct)
+
+
 def build_table(latest):
     rows = (latest or {}).get("listings") or []
     if not rows:
-        return ('<div class="table-scroll"><div class="empty-note">'
-                'No per-seat inventory yet. Ticketmaster\'s seat-map feed is '
-                'undocumented and can refuse a plain developer key &mdash; when '
-                'it does, the board still tracks the event-wide low, just '
-                'without section detail.</div></div>')
+        return ('<div class="empty-note">'
+                'The Discovery API reports a price range for the event, not a '
+                'seat-by-seat list.<br>Section and row detail appears here only '
+                'if Ticketmaster\'s seat-map feed answers your key.</div>')
     rows = sorted(rows, key=lambda r: r.get("price", 9e9))[:25]
-    out = ['<div class="table-scroll"><table><thead><tr>'
+    out = ['<table><thead><tr>'
            '<th>Price</th><th>Section</th><th>Row</th><th>Together</th>'
            '<th>Tier</th></tr></thead><tbody>']
     for r in rows:
@@ -228,13 +224,13 @@ def build_table(latest):
             '<td class="num">{}</td><td class="num">{}</td><td>{}</td></tr>'
             .format(r.get("price", 0), esc(sec), prime, esc(r.get("row", "?")),
                     esc(r.get("qty") or "?"), tier))
-    out.append("</tbody></table></div>")
+    out.append("</tbody></table>")
     return "".join(out)
 
 
 def build_sites():
     return "\n".join(
-        '<a class="site" href="{u}" target="_blank" rel="noopener noreferrer">'
+        '<a class="card site" href="{u}" target="_blank" rel="noopener noreferrer">'
         '<span class="site-name">{n}</span>'
         '<span class="site-sub">{s}</span></a>'.format(u=esc(u), n=esc(n), s=esc(s))
         for n, s, u in SITES)
@@ -260,7 +256,7 @@ def main():
             n_alerts, "" if n_alerts == 1 else "s") if n_alerts
             else "Scanning &mdash; nothing at target")
     else:
-        sclass, stext = "off", "Awaiting secrets &mdash; no scan yet"
+        sclass, stext = "off", "Standing by for the first scan"
 
     chart_body, chart_data = build_chart(history)
 
@@ -283,11 +279,11 @@ def main():
         "__LAST_SCAN__": esc(fmt_ts(history[-1]["ts"]) if history else "never"),
         "__SCAN_COUNT__": str(len(history)),
         "__EMAIL__": esc(email_to),
-        "__SETUP_BLOCK__": build_setup(history),
         "__TIER_CARDS__": build_tiers(cfg, latest, state),
         "__CHART_BODY__": chart_body,
         "__LISTING_NOTE__": esc(listing_note),
         "__LISTINGS_TABLE__": build_table(latest),
+        "__RANGE_PANEL__": build_range(latest),
         "__SITE_LINKS__": build_sites(),
         "__GENERATED__": esc(datetime.now().strftime("%b %-d, %Y at %-I:%M %p")),
         "__DATA_JSON__": json.dumps(chart_data),

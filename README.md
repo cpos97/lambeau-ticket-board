@@ -9,10 +9,25 @@ Runs entirely on GitHub's servers. Your computer does not need to be on.
 - `.github/workflows/scan.yml` — runs both every 30 minutes, commits the result,
   and republishes the site to GitHub Pages
 - `history.jsonl` — the database: one line per scan, forever
+- `img/icebowl.jpg` — page background (Ice Bowl, 1967; see `img/CREDITS.md`)
 
 ## Setup
 
-Add four repository secrets under **Settings › Secrets and variables › Actions**:
+Set four repository secrets. The CLI is the reliable route — it prompts you to
+paste each value, so nothing is ever typed into a file or a URL:
+
+```bash
+gh secret set TM_API_KEY --repo cpos97/lambeau-ticket-board
+gh secret set GMAIL_APP_PASSWORD --repo cpos97/lambeau-ticket-board
+gh secret set EMAIL_FROM --repo cpos97/lambeau-ticket-board
+gh secret set EMAIL_TO --repo cpos97/lambeau-ticket-board
+```
+
+Or in the browser: repo → **Settings** tab → sidebar **Secrets and variables** →
+**Actions** → *New repository secret*. (The direct URL 404s unless you are signed
+in as the repo owner.)
+
+What each one is:
 
 | Secret | What it is |
 |---|---|
@@ -21,7 +36,11 @@ Add four repository secrets under **Settings › Secrets and variables › Actio
 | `EMAIL_FROM` | the Gmail address that sends the alert |
 | `EMAIL_TO` | the address that receives it |
 
-Then go to the **Actions** tab and hit **Run workflow** to fire the first scan.
+Then fire the first scan:
+
+```bash
+gh workflow run scan.yml --repo cpos97/lambeau-ticket-board
+```
 
 ## Tuning
 
