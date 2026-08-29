@@ -38,6 +38,7 @@ LATEST_PATH = os.path.join(HERE, "latest.json")
 LOG_PATH = os.path.join(HERE, "watch.log")
 
 DISCOVERY_URL = "https://app.ticketmaster.com/discovery/v2/events/{eid}.json"
+SEARCH_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 ISM_URL = "https://services.ticketmaster.com/api/ismds/event/{eid}/facets"
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " \
@@ -124,6 +125,54 @@ def http_get_json(url, params, timeout=25):
 
 
 # ------------------------------------------------------------ data fetching
+
+def find_event(apikey, cfg):
+    """Look the game up by date + teams. Ticketmaster rotates event ids, so a
+    hardcoded one goes stale; this makes the scanner self-healing."""
+    ev = cfg["event"]
+    day = ev["date"]
+    params = {
+        "apikey": apikey,
+        "keyword": "Green Bay Packers",
+        "classificationName": "Football",
+        "countryCode": "US",
+        "startDateTime": day + "T00:00:00Z",
+        "endDateTime": day + "T23:59:59Z",
+        "size": 50,
+    }
+    try:
+        data = http_get_json(SEARCH_URL, params)
+    except Exception as e:
+        log("Event search failed: {}".format(e))
+        return None
+
+    events = ((data.get("_embedded") or {}).get("events") or [])
+    if not events:
+        # widen to a 3-day window in case of a timezone edge
+        from datetime import date as _d
+        try:
+            y, m, dd = [int(x) for x in day.split("-")]
+            base = datetime(y, m, dd, tzinfo=timezone.utc)
+            params["startDateTime"] = (base - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            params["endDateTime"] = (base + timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            data = http_get_json(SEARCH_URL, params)
+            events = ((data.get("_embedded") or {}).get("events") or [])
+        except Exception as e:
+            log("Widened event search failed: {}".format(e))
+
+    if not events:
+        log("No Packers events found on {}.".format(day))
+        return None
+
+    for e in events:
+        if "cowboy" in (e.get("name") or "").lower():
+            log("Resolved event id {} -- {}".format(e.get("id"), e.get("name")))
+            return e.get("id")
+
+    log("Found {} Packers event(s) on {} but none named Cowboys: {}".format(
+        len(events), day, ", ".join((e.get("name") or "?") for e in events[:5])))
+    return events[0].get("id")
+
 
 def fetch_discovery(eid, apikey):
     """Returns dict with min/max all-in price and the public event URL."""
@@ -493,6 +542,23 @@ def main():
     key = cfg["ticketmaster_api_key"]
 
     discovery = fetch_discovery(eid, key)
+    if not discovery:
+        log("Configured event id did not resolve; searching for the game.")
+        found = find_event(key, cfg)
+        if found and found != eid:
+            eid = found
+            discovery = fetch_discovery(eid, key)
+            if discovery:
+                cfg["event"]["ticketmaster_event_id"] = eid
+                try:
+                    with open(CONFIG_PATH) as fh:
+                        disk = json.load(fh)
+                    disk["event"]["ticketmaster_event_id"] = eid
+                    with open(CONFIG_PATH, "w") as fh:
+                        json.dump(disk, fh, indent=2)
+                    log("Saved resolved event id to config.json.")
+                except OSError as e:
+                    log("Could not persist event id: {}".format(e))
     if discovery:
         log("Discovery: {} | status={} | ${} - ${}".format(
             discovery.get("name"), discovery.get("status"),
