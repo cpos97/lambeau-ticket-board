@@ -16,7 +16,8 @@ ISM = "https://services.ticketmaster.com/api/ismds/event/{}/facets".format(HOST_
 def probe(label, params):
     url = ISM + "?" + urllib.parse.urlencode(params, doseq=True)
     req = urllib.request.Request(url, headers={
-        "User-Agent": UA, "Accept": "application/json"})
+        "User-Agent": UA, "Accept": "application/json",
+        "X-Api-Key": KEY})
     try:
         with urllib.request.urlopen(req, timeout=25,
                                     context=ssl.create_default_context()) as r:
