@@ -1,0 +1,69 @@
+name: Scan tickets
+
+on:
+  schedule:
+    # Every 30 minutes. GitHub queues cron jobs, so real runs often land
+    # 5-20 minutes late under load. That is normal and not worth fighting.
+    - cron: '*/30 * * * *'
+  workflow_dispatch:        # lets you trigger a scan by hand from the Actions tab
+  push:
+    branches: [main]
+
+permissions:
+  contents: write           # to commit history.jsonl back to the repo
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ticket-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Scan Ticketmaster and email on a hit
+        env:
+          TM_API_KEY:          ${{ secrets.TM_API_KEY }}
+          GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_FROM:          ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:            ${{ secrets.EMAIL_TO }}
+        run: python3 watch.py
+
+      - name: Rebuild the board
+        env:
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python3 render.py
+
+      - name: Commit price history
+        run: |
+          git config user.name  "ticket-watch"
+          git config user.email "actions@github.com"
+          git add history.jsonl state.json latest.json dashboard.html
+          git diff --staged --quiet || git commit -m "scan: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
+
+      - name: Package the site
+        run: |
+          mkdir -p _site
+          cp dashboard.html _site/index.html
+          cp history.jsonl _site/history.jsonl 2>/dev/null || true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  publish:
+    needs: scan
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

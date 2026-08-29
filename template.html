@@ -1,0 +1,360 @@
+<title>Lambeau Ticket Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+<style>
+:root{
+  --ground:#F0F2ED; --surface:#FFFFFF; --surface-2:#E8ECE4; --sunk:#DFE4D9;
+  --ink:#131F19; --ink-2:#4E5D53; --ink-3:#7A8880;
+  --line:#D3DACE; --line-strong:#B7C1B2;
+  --gb-green:#1A3A2C; --gb-gold:#FFB612; --dal-navy:#041E42; --dal-silver:#7C8894;
+  --hit:#9A6600; --hit-bg:#FBF0D6;
+  --warn:#8A4B12; --quiet:#6B7A70;
+  --shadow:0 1px 2px rgba(19,31,25,.06),0 8px 24px -12px rgba(19,31,25,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0C1311; --surface:#141D19; --surface-2:#1B2622; --sunk:#0F1714;
+    --ink:#E9F0EA; --ink-2:#98A79D; --ink-3:#6E7D74;
+    --line:#25322C; --line-strong:#33443B;
+    --gb-green:#2C5A44; --gb-gold:#FFB612; --dal-navy:#0B2E5C; --dal-silver:#8B98A6;
+    --hit:#FFC53D; --hit-bg:#2A2113;
+    --warn:#E0A45C; --quiet:#8A998F;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0C1311; --surface:#141D19; --surface-2:#1B2622; --sunk:#0F1714;
+  --ink:#E9F0EA; --ink-2:#98A79D; --ink-3:#6E7D74;
+  --line:#25322C; --line-strong:#33443B;
+  --gb-green:#2C5A44; --gb-gold:#FFB612; --dal-navy:#0B2E5C; --dal-silver:#8B98A6;
+  --hit:#FFC53D; --hit-bg:#2A2113;
+  --warn:#E0A45C; --quiet:#8A998F;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:0 20px 72px}
+h1,h2,h3{margin:0; text-wrap:balance}
+a{color:inherit}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-variant-numeric:tabular-nums}
+
+/* ---------- matchup banner ---------- */
+.banner{position:relative; overflow:hidden; margin:0 0 28px; color:#fff;
+  background:var(--dal-navy); border-bottom:3px solid var(--gb-gold)}
+.banner::before{content:""; position:absolute; inset:0; background:var(--gb-green);
+  clip-path:polygon(0 0, 58% 0, 42% 100%, 0 100%)}
+.banner-inner{position:relative; max-width:1080px; margin:0 auto;
+  padding:34px 20px 30px; display:flex; align-items:center;
+  justify-content:space-between; gap:16px; flex-wrap:wrap}
+.team{display:flex; flex-direction:column; gap:2px; min-width:0}
+.team.away{text-align:right; margin-left:auto}
+.team-city{font-family:"Public Sans",sans-serif; font-size:.72rem;
+  letter-spacing:.16em; text-transform:uppercase; opacity:.72}
+.team-name{font-family:"Big Shoulders Display","Public Sans",sans-serif;
+  font-weight:800; font-size:clamp(2.1rem,6vw,3.4rem); line-height:.92;
+  letter-spacing:.005em}
+.team.home .team-name{color:var(--gb-gold)}
+.team.away .team-name{color:#C9D2DB}
+.vs{font-family:"Big Shoulders Display",sans-serif; font-weight:500;
+  font-size:1.1rem; letter-spacing:.3em; opacity:.6; padding:0 4px}
+.kick{width:100%; display:flex; gap:22px; flex-wrap:wrap; align-items:baseline;
+  padding-top:18px; margin-top:16px; border-top:1px solid rgba(255,255,255,.18);
+  font-size:.83rem; letter-spacing:.04em}
+.kick span{opacity:.85}
+.kick b{font-weight:600; color:var(--gb-gold)}
+
+/* ---------- status strip ---------- */
+.strip{display:flex; flex-wrap:wrap; gap:10px 26px; align-items:center;
+  padding:12px 16px; margin-bottom:28px; border:1px solid var(--line);
+  border-radius:3px; background:var(--surface); font-size:.82rem; color:var(--ink-2)}
+.dot{display:inline-block; width:7px; height:7px; border-radius:50%;
+  margin-right:7px; vertical-align:middle}
+.dot.ok{background:#3E9B5F} .dot.wait{background:var(--gb-gold)}
+.dot.off{background:var(--ink-3)}
+
+/* ---------- section ---------- */
+section{margin-bottom:44px}
+.sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:14px;
+  padding-bottom:9px; border-bottom:2px solid var(--ink)}
+.sec-head h2{font-family:"Big Shoulders Display",sans-serif; font-weight:700;
+  font-size:1.6rem; letter-spacing:.02em; text-transform:uppercase}
+.sec-head .note{font-size:.78rem; color:var(--ink-3); margin-left:auto;
+  letter-spacing:.03em}
+
+/* ---------- tier cards ---------- */
+.tiers{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.tier{background:var(--surface); border:1px solid var(--line); border-radius:3px;
+  padding:20px 20px 18px; box-shadow:var(--shadow); position:relative;
+  display:flex; flex-direction:column; gap:10px}
+.tier.hit{border-color:var(--gb-gold); background:var(--hit-bg)}
+.tier-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+.tier-label{font-size:.7rem; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600}
+.tier h3{font-family:"Big Shoulders Display",sans-serif; font-weight:700;
+  font-size:1.35rem; letter-spacing:.01em; margin-top:2px}
+.pill{font-size:.66rem; letter-spacing:.11em; text-transform:uppercase;
+  font-weight:600; padding:4px 9px; border-radius:2px; white-space:nowrap;
+  border:1px solid var(--line-strong); color:var(--ink-2); background:var(--surface-2)}
+.pill.hit{background:var(--gb-gold); border-color:var(--gb-gold); color:#20180A}
+.pill.none{color:var(--ink-3)}
+.price{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-weight:600; font-size:2.5rem; line-height:1; letter-spacing:-.02em}
+.tier.hit .price{color:var(--hit)}
+.price .cur{font-size:1.3rem; vertical-align:.42em; opacity:.55; margin-right:1px}
+.price.empty{color:var(--ink-3); font-size:1.5rem; font-weight:400}
+.tier-meta{font-size:.79rem; color:var(--ink-2); line-height:1.45}
+.tier-meta code{font-family:"IBM Plex Mono",monospace; font-size:.94em;
+  background:var(--surface-2); padding:1px 5px; border-radius:2px}
+.tier-foot{margin-top:auto; padding-top:10px; border-top:1px dashed var(--line);
+  font-size:.74rem; color:var(--ink-3); letter-spacing:.02em}
+
+/* ---------- chart ---------- */
+.chart-card{background:var(--surface); border:1px solid var(--line);
+  border-radius:3px; padding:18px 18px 12px; box-shadow:var(--shadow)}
+#spark{display:block; width:100%; height:190px}
+.legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px;
+  font-size:.76rem; color:var(--ink-2)}
+.swatch{display:inline-block; width:14px; height:3px; margin-right:6px;
+  vertical-align:middle; border-radius:2px}
+.empty-note{padding:40px 8px; text-align:center; color:var(--ink-3);
+  font-size:.88rem}
+
+/* ---------- table ---------- */
+.table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:3px;
+  background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:.87rem}
+th{text-align:left; font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600; padding:11px 16px;
+  border-bottom:1px solid var(--line-strong); background:var(--sunk)}
+td{padding:11px 16px; border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+td.num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-weight:500}
+.prime{display:inline-block; margin-left:8px; font-size:.62rem; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--hit);
+  border:1px solid var(--hit); padding:1px 5px; border-radius:2px}
+
+/* ---------- cross-check ---------- */
+.sites{display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.site{display:flex; flex-direction:column; gap:3px; padding:14px 16px;
+  background:var(--surface); border:1px solid var(--line); border-radius:3px;
+  text-decoration:none; transition:border-color .14s, transform .14s}
+.site:hover,.site:focus-visible{border-color:var(--gb-gold); transform:translateY(-1px)}
+.site-name{font-family:"Big Shoulders Display",sans-serif; font-weight:700;
+  font-size:1.15rem; letter-spacing:.02em}
+.site-sub{font-size:.74rem; color:var(--ink-3)}
+
+/* ---------- setup ---------- */
+.setup{background:var(--surface-2); border:1px solid var(--line);
+  border-left:3px solid var(--gb-gold); border-radius:3px; padding:18px 20px}
+.setup ol{margin:10px 0 0; padding-left:20px; font-size:.88rem; color:var(--ink-2)}
+.setup li{margin-bottom:8px}
+.setup code{font-family:"IBM Plex Mono",monospace; font-size:.9em;
+  background:var(--sunk); padding:2px 6px; border-radius:2px; color:var(--ink)}
+footer{border-top:1px solid var(--line); padding-top:18px; font-size:.78rem;
+  color:var(--ink-3); line-height:1.6}
+:focus-visible{outline:2px solid var(--gb-gold); outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:560px){
+  .banner-inner{padding:26px 20px 24px}
+  .vs{display:none}
+  .team.away{text-align:left; margin-left:0}
+  .price{font-size:2.1rem}
+}
+</style>
+
+<div class="banner">
+  <div class="banner-inner">
+    <div class="team home">
+      <span class="team-city">Green Bay</span>
+      <span class="team-name">PACKERS</span>
+    </div>
+    <span class="vs">VS</span>
+    <div class="team away">
+      <span class="team-city">Dallas</span>
+      <span class="team-name">COWBOYS</span>
+    </div>
+    <div class="kick">
+      <span><b>Sun Oct 18, 2026</b> &middot; 7:20 PM CT</span>
+      <span>Lambeau Field, Green Bay WI</span>
+      <span>Sunday Night Football &middot; NBC</span>
+      <span id="countdown"></span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="strip">
+    <span><span class="dot __STATUS_CLASS__"></span>__STATUS_TEXT__</span>
+    <span>Last scan <b class="mono">__LAST_SCAN__</b></span>
+    <span>Scans logged <b class="mono">__SCAN_COUNT__</b></span>
+    <span>Watching <b class="mono">2&ndash;4 seats</b></span>
+    <span>Alerts to <b class="mono">__EMAIL__</b></span>
+  </div>
+
+  __SETUP_BLOCK__
+
+  <section>
+    <div class="sec-head">
+      <h2>The Board</h2>
+      <span class="note">Ticketmaster all-in price, per ticket</span>
+    </div>
+    <div class="tiers">__TIER_CARDS__</div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Price History</h2>
+      <span class="note">Every scan since tracking began</span>
+    </div>
+    <div class="chart-card">
+      __CHART_BODY__
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Cheapest Listings</h2>
+      <span class="note">__LISTING_NOTE__</span>
+    </div>
+    __LISTINGS_TABLE__
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Cross-Check Before You Buy</h2>
+      <span class="note">Opens each site's page for this game</span>
+    </div>
+    <p style="margin:0 0 14px;font-size:.88rem;color:var(--ink-2);max-width:66ch">
+      The scanner only reads Ticketmaster, which is the one market with a public API.
+      Resale prices for the same seats routinely differ by 20&ndash;40% across these
+      sites, and fee structures differ on top of that. Check them by hand before
+      pulling the trigger on anything the board flags.
+    </p>
+    <div class="sites">__SITE_LINKS__</div>
+  </section>
+
+  <footer>
+    <p style="margin:0 0 6px">
+      Generated by <span class="mono">watch.py</span> on __GENERATED__.
+      This page is a snapshot &mdash; it does not update on its own. Re-run the
+      scanner to refresh it.
+    </p>
+    <p style="margin:0">
+      Prices are Ticketmaster's all-in figures and are refreshed upstream at most
+      once per hour. Nothing here is a purchase; every buy happens on the ticket
+      site itself.
+    </p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var DATA = __DATA_JSON__;
+
+  /* ---- countdown to kickoff (Oct 18 2026, 7:20 PM CT = 00:20 UTC Oct 19) ---- */
+  var kickoff = Date.parse("2026-10-19T00:20:00Z");
+  var el = document.getElementById("countdown");
+  if (el) {
+    var days = Math.floor((kickoff - Date.now()) / 86400000);
+    el.innerHTML = days > 0
+      ? "<b>" + days + " days</b> to kickoff"
+      : (days === 0 ? "<b>Today</b>" : "Game has passed");
+  }
+
+  /* ---- price history sparkline ---- */
+  var cv = document.getElementById("spark");
+  if (!cv || !DATA.series || !DATA.series.length) return;
+
+  function css(n){ return getComputedStyle(document.documentElement)
+    .getPropertyValue(n).trim(); }
+
+  function draw(){
+    var dpr = window.devicePixelRatio || 1;
+    var w = cv.clientWidth, h = cv.clientHeight;
+    cv.width = w * dpr; cv.height = h * dpr;
+    var g = cv.getContext("2d");
+    g.setTransform(dpr,0,0,dpr,0,0);
+    g.clearRect(0,0,w,h);
+
+    var padL = 52, padR = 14, padT = 14, padB = 26;
+    var iw = w - padL - padR, ih = h - padT - padB;
+
+    var all = [];
+    DATA.series.forEach(function(s){ s.points.forEach(function(p){
+      if (p.v != null) all.push(p.v); }); });
+    if (!all.length) return;
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    if (hi === lo){ hi = lo + 10; lo = Math.max(0, lo - 10); }
+    var pad = (hi - lo) * 0.12; lo = Math.max(0, lo - pad); hi = hi + pad;
+
+    var n = DATA.labels.length;
+    function X(i){ return padL + (n <= 1 ? iw/2 : (i/(n-1))*iw); }
+    function Y(v){ return padT + ih - ((v - lo)/(hi - lo))*ih; }
+
+    /* grid + y axis */
+    g.strokeStyle = css("--line"); g.lineWidth = 1;
+    g.fillStyle = css("--ink-3");
+    g.font = '500 10px "IBM Plex Mono", monospace';
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (var k = 0; k <= 3; k++){
+      var v = lo + (hi - lo) * k/3, y = Math.round(Y(v)) + .5;
+      g.beginPath(); g.moveTo(padL, y); g.lineTo(w - padR, y); g.stroke();
+      g.fillText("$" + Math.round(v), padL - 9, y);
+    }
+
+    DATA.series.forEach(function(s){
+      var pts = [];
+      s.points.forEach(function(p, i){ if (p.v != null) pts.push([X(i), Y(p.v)]); });
+      if (!pts.length) return;
+      var col = css(s.token) || s.fallback;
+
+      if (s.fill && pts.length > 1){
+        var grad = g.createLinearGradient(0, padT, 0, padT + ih);
+        grad.addColorStop(0, col + "38"); grad.addColorStop(1, col + "00");
+        g.beginPath(); g.moveTo(pts[0][0], padT + ih);
+        pts.forEach(function(p){ g.lineTo(p[0], p[1]); });
+        g.lineTo(pts[pts.length-1][0], padT + ih);
+        g.closePath(); g.fillStyle = grad; g.fill();
+      }
+
+      g.beginPath();
+      pts.forEach(function(p, i){ i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); });
+      g.strokeStyle = col; g.lineWidth = 2; g.lineJoin = "round";
+      g.stroke();
+
+      /* emphasized endpoint */
+      var last = pts[pts.length - 1];
+      g.beginPath(); g.arc(last[0], last[1], 3.5, 0, Math.PI*2);
+      g.fillStyle = col; g.fill();
+      g.beginPath(); g.arc(last[0], last[1], 6, 0, Math.PI*2);
+      g.strokeStyle = col + "55"; g.lineWidth = 1.5; g.stroke();
+    });
+
+    /* x labels: first and last only */
+    g.fillStyle = css("--ink-3"); g.textBaseline = "top";
+    g.textAlign = "left";
+    g.fillText(DATA.labels[0], padL, padT + ih + 8);
+    if (n > 1){ g.textAlign = "right";
+      g.fillText(DATA.labels[n-1], w - padR, padT + ih + 8); }
+  }
+
+  draw();
+  var t; window.addEventListener("resize", function(){
+    clearTimeout(t); t = setTimeout(draw, 120); });
+  if (window.matchMedia){
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    (mq.addEventListener ? mq.addEventListener.bind(mq,"change")
+                         : mq.addListener.bind(mq))(draw);
+  }
+})();
+</script>
