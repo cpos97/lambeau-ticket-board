@@ -48,7 +48,9 @@ jobs:
         run: |
           git config user.name  "ticket-watch"
           git config user.email "actions@github.com"
-          git add history.jsonl state.json latest.json dashboard.html
+          for f in history.jsonl state.json latest.json dashboard.html; do
+            [ -f "$f" ] && git add "$f"
+          done
           git diff --staged --quiet || git commit -m "scan: $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push
 
