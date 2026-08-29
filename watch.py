@@ -188,12 +188,17 @@ def fetch_discovery(eid, apikey):
     ranges = data.get("priceRanges") or []
     mins = [r["min"] for r in ranges if isinstance(r.get("min"), (int, float))]
     maxs = [r["max"] for r in ranges if isinstance(r.get("max"), (int, float))]
+
+    sales = (data.get("sales") or {}).get("public") or {}
     return {
         "name": data.get("name"),
         "url": data.get("url"),
         "min_price": min(mins) if mins else None,
         "max_price": max(maxs) if maxs else None,
         "status": (data.get("dates", {}).get("status", {}) or {}).get("code"),
+        "onsale_start": sales.get("startDateTime"),
+        "onsale_end": sales.get("endDateTime"),
+        "sale_tbd": bool(sales.get("startTBD") or sales.get("startTBA")),
     }
 
 
@@ -573,6 +578,22 @@ def main():
     state = load_state()
     alerts, tier_lows = evaluate(cfg, listings, discovery, history, state)
 
+    # Going on sale is the event worth knowing about while the game is offsale.
+    status = (discovery or {}).get("status")
+    prev_status = state.get("last_status")
+    if status and status != prev_status:
+        log("Sale status changed: {} -> {}".format(prev_status or "unknown", status))
+        if prev_status and status == "onsale":
+            alerts.append({
+                "tier": "onsale",
+                "label": "TICKETS JUST WENT ON SALE",
+                "low": (discovery or {}).get("min_price") or 0,
+                "reasons": ["Ticketmaster flipped this game from {} to onsale"
+                            .format(prev_status)],
+                "listings": [], "count": 0,
+            })
+        state["last_status"] = status
+
     append_history({
         "ts": now().isoformat(),
         "tier_lows": tier_lows,
@@ -589,6 +610,9 @@ def main():
             "event_min": (discovery or {}).get("min_price"),
             "event_max": (discovery or {}).get("max_price"),
             "event_url": (discovery or {}).get("url"),
+            "status": (discovery or {}).get("status"),
+            "onsale_start": (discovery or {}).get("onsale_start"),
+            "sale_tbd": (discovery or {}).get("sale_tbd"),
             "listings": sorted(listings, key=lambda l: l["price"])[:60],
             "alerts": [{"tier": a["tier"], "label": a["label"],
                         "low": a["low"], "reasons": a["reasons"]}

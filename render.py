@@ -172,6 +172,36 @@ def build_chart(history):
 
 
 def build_range(latest):
+    status = (latest or {}).get("status")
+    if status and status != "onsale":
+        onsale = (latest or {}).get("onsale_start")
+        when = fmt_ts(onsale, "") if onsale else ""
+        if (latest or {}).get("sale_tbd") or not when:
+            line = ("Ticketmaster has not announced a public on-sale date for "
+                    "this game yet.")
+        else:
+            line = "Public on-sale is listed for <b>{}</b>.".format(esc(when))
+        label = {"offsale": "Not on sale",
+                 "cancelled": "Cancelled",
+                 "postponed": "Postponed",
+                 "rescheduled": "Rescheduled"}.get(status, esc(status))
+        return ('<div class="card range" style="display:block">'
+                '<div style="display:flex;align-items:center;gap:12px;'
+                'margin-bottom:10px">'
+                '<span class="pill" style="background:var(--sunk)">{}</span>'
+                '<span class="k" style="font-size:.66rem;letter-spacing:.16em;'
+                'text-transform:uppercase;color:var(--ink-3);font-weight:600">'
+                'Ticketmaster status</span></div>'
+                '<p style="margin:0;font-size:.92rem;color:var(--ink-2);'
+                'max-width:62ch;line-height:1.6">{} The scanner keeps checking '
+                'every 30 minutes and will email you the moment it flips on '
+                'sale. Resale sites in Cross-Check below may already have '
+                'listings.</p></div>').format(label, line)
+
+    return _build_range_prices(latest)
+
+
+def _build_range_prices(latest):
     lo = (latest or {}).get("event_min")
     hi = (latest or {}).get("event_max")
     if not isinstance(lo, (int, float)) or not isinstance(hi, (int, float)):
@@ -251,10 +281,14 @@ def main():
         sclass, stext = "off", ""
     elif history:
         n_alerts = len((latest or {}).get("alerts") or [])
-        sclass = "ok" if not n_alerts else "wait"
-        stext = ("{} deal alert{} on last scan".format(
-            n_alerts, "" if n_alerts == 1 else "s") if n_alerts
-            else "Scanning &mdash; nothing at target")
+        st = (latest or {}).get("status")
+        if n_alerts:
+            sclass, stext = "wait", "{} alert{} on last scan".format(
+                n_alerts, "" if n_alerts == 1 else "s")
+        elif st and st != "onsale":
+            sclass, stext = "off", "Not on sale at Ticketmaster yet"
+        else:
+            sclass, stext = "ok", "Scanning &mdash; nothing at target"
     else:
         sclass, stext = "off", "Standing by for the first scan"
 
