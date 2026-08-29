@@ -12,11 +12,10 @@ from datetime import datetime, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 P = lambda n: os.path.join(HERE, n)
 
-TIER_ORDER = ["premium", "good", "steal"]
+TIER_ORDER = ["target", "steal"]
 TIER_TOKEN = {
-    "premium": ("--gb-gold", "#FFB612"),
-    "good":    ("--gb-green", "#2C5A44"),
-    "steal":   ("--dal-silver", "#8B98A6"),
+    "target": ("--gb-gold", "#FFB612"),
+    "steal":  ("--dal-silver", "#8B98A6"),
 }
 
 SITES = [
@@ -115,12 +114,9 @@ def build_tiers(cfg, latest, state):
                         (1 - tier.get("drop_factor", .55)) * 100,
                         tier.get("trailing_days", 7)))
         else:
-            secs = ", ".join(str(s) for s in tier.get("sections", []))
-            meta = "Sections <code>{}</code>. Alerts at or below <code>${:,.0f}</code>.".format(
-                esc(secs), target or 0)
-            if tier.get("best_sections"):
-                meta += " Rows in <code>{}</code> sit between the 20s and get flagged as prime.".format(
-                    esc(", ".join(str(s) for s in tier["best_sections"])))
+            meta = ("Lowest all-in price found across every source that has a "
+                    "usable feed. Alerts at or below <code>${:,.0f}</code>, and "
+                    "on any new low since tracking began.".format(target or 0))
 
         foot = ("Lowest ever seen &nbsp;<b class=\"mono\">${:,.2f}</b>".format(atl)
                 if isinstance(atl, (int, float))
@@ -134,9 +130,8 @@ def build_tiers(cfg, latest, state):
             '<div class="tier-meta">{meta}</div>'
             '<div class="tier-foot">{foot}</div></article>'.format(
                 hit=" hit" if is_hit else "",
-                lab={"premium": "Tier 1 &middot; what you want",
-                     "good": "Tier 2 &middot; acceptable",
-                     "steal": "Tier 3 &middot; mispost watch"}[key],
+                lab={"target": "Live across every source",
+                 "steal": "Mispost watch"}.get(key, key),
                 name=esc(tier.get("label", key)),
                 pill=pill, price=price, meta=meta, foot=foot))
 
@@ -172,6 +167,32 @@ def build_chart(history):
 
 
 def build_range(latest):
+    srcs = (latest or {}).get("sources") or []
+    if srcs:
+        cards = []
+        for s_ in srcs:
+            lo = s_.get("low")
+            hi = s_.get("high")
+            cards.append(
+                '<div class="range-item"><span class="k">{}</span>'
+                '<span class="v">${:,.0f}</span>'
+                '<span style="font-size:.72rem;color:var(--ink-3)">{}</span>'
+                '</div>'.format(
+                    esc(s_.get("source", "?")),
+                    lo if isinstance(lo, (int, float)) else 0,
+                    ("up to ${:,.0f}".format(hi)
+                     if isinstance(hi, (int, float)) and hi else "cheapest all-in")))
+        note = ('<p style="width:100%;margin:14px 0 0;font-size:.8rem;'
+                'color:var(--ink-3);line-height:1.6">Ticketmaster, StubHub, '
+                'TickPick and Vivid Seats have no public price feed, so they '
+                'cannot be scanned \u2014 use the cross-check links below for '
+                'those.</p>')
+        return '<div class="card range">' + "".join(cards) + note + '</div>'
+
+    return _build_status_panel(latest)
+
+
+def _build_status_panel(latest):
     status = (latest or {}).get("status")
     if status and status != "onsale":
         onsale = (latest or {}).get("onsale_start")

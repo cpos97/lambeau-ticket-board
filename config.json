@@ -1,5 +1,5 @@
 {
-  "_comment": "Committed to the repo -- NOTHING SECRET GOES IN HERE. The API key, email addresses and app password all come from GitHub Actions secrets at runtime (see README).",
+  "_comment": "No ticket source exposes per-section resale data without partner credentials, so tiers are price-based. Edit the thresholds below and push; the next scan uses them.",
   "event": {
     "name": "Cowboys at Packers",
     "date": "2026-10-18",
@@ -12,31 +12,20 @@
     4
   ],
   "targets": {
-    "premium": {
-      "label": "Lower bowl sideline",
-      "sections": [
-        "111-128"
-      ],
-      "best_sections": [
-        "114-120"
-      ],
-      "alert_at_or_below": 450,
-      "alert_on_new_low": true
-    },
-    "good": {
-      "label": "Lower bowl (any)",
-      "sections": [
-        "100-138"
-      ],
-      "alert_at_or_below": 275,
-      "alert_on_new_low": false
-    },
-    "steal": {
-      "label": "Anywhere - possible mispost",
+    "target": {
+      "label": "Cheapest seat",
       "sections": [
         "*"
       ],
-      "alert_at_or_below": 90,
+      "alert_at_or_below": 400,
+      "alert_on_new_low": true
+    },
+    "steal": {
+      "label": "Possible mispost",
+      "sections": [
+        "*"
+      ],
+      "alert_at_or_below": 225,
       "drop_factor": 0.55,
       "trailing_days": 7
     }

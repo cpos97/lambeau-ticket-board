@@ -39,6 +39,8 @@ LOG_PATH = os.path.join(HERE, "watch.log")
 
 DISCOVERY_URL = "https://app.ticketmaster.com/discovery/v2/events/{eid}.json"
 SEARCH_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
+SEATGEEK_URL = "https://api.seatgeek.com/2/events"
+GAMETIME_URL = "https://mobile.gametime.co/v1/search"
 ISM_URL = "https://services.ticketmaster.com/api/ismds/event/{eid}/facets"
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " \
@@ -68,6 +70,7 @@ def load_config():
         cfg = json.load(fh)
 
     cfg["ticketmaster_api_key"] = os.environ.get("TM_API_KEY", "").strip()
+    cfg["seatgeek_client_id"] = os.environ.get("SG_CLIENT_ID", "").strip()
     ec = cfg.setdefault("email", {})
     ec["app_password"] = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
     ec["from_address"] = os.environ.get("EMAIL_FROM", "").strip()
@@ -200,6 +203,104 @@ def fetch_discovery(eid, apikey):
         "onsale_end": sales.get("endDateTime"),
         "sale_tbd": bool(sales.get("startTBD") or sales.get("startTBA")),
     }
+
+
+def fetch_gametime(cfg):
+    """Gametime resells the same inventory and answers an unauthenticated
+    endpoint, so this works with no signup. It is Gametime's own mobile API
+    rather than a published developer API: it can change without notice, so
+    every failure here is non-fatal."""
+    ev = cfg["event"]
+    try:
+        data = http_get_json(GAMETIME_URL, {"q": "packers cowboys"})
+    except Exception as e:
+        log("Gametime request failed: {}".format(e))
+        return None
+
+    for wrapper in (data.get("events") or []):
+        e = wrapper.get("event") or wrapper
+        name = str(e.get("name") or "")
+        low = name.lower()
+        if "packer" not in low or "parking" in low:
+            continue
+        if not str(e.get("datetime_local") or "").startswith(ev["date"]):
+            continue
+        mn = e.get("min_price") or {}
+        mx = e.get("max_price") or {}
+        total = mn.get("total")
+        if not total:
+            continue
+        out = {
+            "source": "Gametime",
+            "title": name,
+            "low": round(total / 100.0, 2),
+            "low_prefee": round((mn.get("prefee") or 0) / 100.0, 2),
+            "high": round((mx.get("total") or 0) / 100.0, 2) or None,
+            "url": "https://gametime.co/search?q=packers%20cowboys",
+        }
+        log("Gametime: {} | cheapest ${:.2f} all-in (${:.2f} pre-fee)".format(
+            out["title"][:44], out["low"], out["low_prefee"]))
+        return out
+
+    log("Gametime: no matching event found on {}.".format(ev["date"]))
+    return None
+
+
+def fetch_seatgeek(client_id, cfg):
+    """SeatGeek aggregates resale inventory, which for a Packers home game is
+    the only market that exists -- season-ticket holders hold the primary.
+    The Platform API returns event-level price stats, refreshed continuously."""
+    if not client_id:
+        return None
+    ev = cfg["event"]
+    params = {
+        "client_id": client_id,
+        "q": "Packers Cowboys",
+        "datetime_local.gte": ev["date"] + "T00:00:00",
+        "datetime_local.lte": ev["date"] + "T23:59:59",
+        "per_page": 25,
+    }
+    try:
+        data = http_get_json(SEATGEEK_URL, params)
+    except urllib.error.HTTPError as e:
+        body = ""
+        try:
+            body = e.read().decode("utf-8", "replace")[:200]
+        except Exception:
+            pass
+        log("SeatGeek HTTP {} -- {} {}".format(e.code, e.reason, body))
+        return None
+    except Exception as e:
+        log("SeatGeek request failed: {}".format(e))
+        return None
+
+    events = data.get("events") or []
+    match = None
+    for e in events:
+        title = (e.get("title") or "").lower()
+        if "packer" in title and "cowboy" in title:
+            match = e
+            break
+    if match is None and events:
+        match = events[0]
+    if match is None:
+        log("SeatGeek: no event found on {}.".format(ev["date"]))
+        return None
+
+    st = match.get("stats") or {}
+    out = {
+        "title": match.get("title"),
+        "url": match.get("url"),
+        "low": st.get("lowest_price"),
+        "high": st.get("highest_price"),
+        "avg": st.get("average_price"),
+        "median": st.get("median_price"),
+        "count": st.get("listing_count"),
+        "good_deal_low": st.get("lowest_price_good_deals"),
+    }
+    log("SeatGeek: {} | low=${} avg=${} high=${} | {} listings".format(
+        out["title"], out["low"], out["avg"], out["high"], out["count"]))
+    return out
 
 
 def fetch_ism_listings(eid, apikey):
@@ -511,9 +612,23 @@ def main():
             discovery.get("min_price"), discovery.get("max_price")))
     listings = fetch_ism_listings(eid, key)
 
-    if not discovery and not listings:
-        log("No data retrieved from either source. Nothing to evaluate.")
+    if not discovery and not listings and not seatgeek and not gametime:
+        log("No data retrieved from any source. Nothing to evaluate.")
         return
+
+    listings = []
+    sources = []
+    if gametime and isinstance(gametime.get("low"), (int, float)):
+        listings.append({"section": "Gametime", "row": "cheapest",
+                         "price": float(gametime["low"]), "qty": 0})
+        sources.append(gametime)
+    if seatgeek and isinstance(seatgeek.get("low"), (int, float)):
+        listings.append({"section": "SeatGeek", "row": "cheapest",
+                         "price": float(seatgeek["low"]), "qty": 0})
+        sources.append({"source": "SeatGeek", "title": seatgeek.get("title"),
+                        "low": seatgeek.get("low"), "high": seatgeek.get("high"),
+                        "url": seatgeek.get("url"),
+                        "count": seatgeek.get("count")})
 
     history = read_history()
     state = load_state()
@@ -551,6 +666,9 @@ def main():
             "event_min": (discovery or {}).get("min_price"),
             "event_max": (discovery or {}).get("max_price"),
             "event_url": (discovery or {}).get("url"),
+            "seatgeek": seatgeek,
+            "gametime": gametime,
+            "sources": sources,
             "status": (discovery or {}).get("status"),
             "onsale_start": (discovery or {}).get("onsale_start"),
             "sale_tbd": (discovery or {}).get("sale_tbd"),
