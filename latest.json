@@ -1,12 +1,12 @@
 {
-  "ts": "2026-08-29T18:16:03.742194+00:00",
+  "ts": "2026-08-29T18:17:05.424519+00:00",
   "tier_lows": {
     "target": 428.0,
     "steal": 428.0
   },
   "event_min": null,
   "event_max": null,
-  "event_url": null,
+  "event_url": "https://www.ticketmaster.com/green-bay-packers-vs-dallas-cowboys-green-bay-wisconsin-10-18-2026/event/0700646BCF6088AD",
   "seatgeek": null,
   "gametime": {
     "source": "Gametime",
@@ -27,9 +27,9 @@
       "url": "https://gametime.co/search?q=packers%20cowboys"
     }
   ],
-  "status": null,
+  "status": "offsale",
   "onsale_start": null,
-  "sale_tbd": null,
+  "sale_tbd": true,
   "listings": [
     {
       "section": "Gametime",
