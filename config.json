@@ -1,44 +1,51 @@
 {
   "_comment": "Committed to the repo -- NOTHING SECRET GOES IN HERE. The API key, email addresses and app password all come from GitHub Actions secrets at runtime (see README).",
-
   "event": {
     "name": "Cowboys at Packers",
     "date": "2026-10-18",
     "venue": "Lambeau Field",
-    "ticketmaster_event_id": "0700646BCF6088AD"
+    "ticketmaster_event_id": "vv17jZ_kGkR2bFxc"
   },
-
-  "quantity": [2, 3, 4],
-
+  "quantity": [
+    2,
+    3,
+    4
+  ],
   "targets": {
     "premium": {
       "label": "Lower bowl sideline",
-      "sections": ["111-128"],
-      "best_sections": ["114-120"],
+      "sections": [
+        "111-128"
+      ],
+      "best_sections": [
+        "114-120"
+      ],
       "alert_at_or_below": 450,
       "alert_on_new_low": true
     },
     "good": {
       "label": "Lower bowl (any)",
-      "sections": ["100-138"],
+      "sections": [
+        "100-138"
+      ],
       "alert_at_or_below": 275,
       "alert_on_new_low": false
     },
     "steal": {
       "label": "Anywhere - possible mispost",
-      "sections": ["*"],
+      "sections": [
+        "*"
+      ],
       "alert_at_or_below": 90,
       "drop_factor": 0.55,
       "trailing_days": 7
     }
   },
-
   "email": {
     "enabled": true,
     "smtp_host": "smtp.gmail.com",
     "smtp_port": 587
   },
-
   "behavior": {
     "cooldown_hours": 6
   }
