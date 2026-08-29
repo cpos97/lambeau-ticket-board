@@ -203,78 +203,19 @@ def fetch_discovery(eid, apikey):
 
 
 def fetch_ism_listings(eid, apikey):
+    """Per-seat inventory is NOT available on a public developer key.
+
+    Ticketmaster's seat-map service (services.ticketmaster.com/api/ismds) holds
+    the resale listings shown on their website. It accepts the Discovery
+    consumer key via an X-Api-Key header, then requires an additional
+    X-Service-Token that is only issued to Ticketmaster's own web and app
+    clients. There is no supported way to obtain one with a developer account,
+    so this returns nothing by design rather than pretending to try.
+
+    The documented route to resale data is the Partner API:
+    https://developer.ticketmaster.com/products-and-docs/apis/partner/
     """
-    Best-effort per-section inventory from the seat-map service.
-    Returns list of {section, row, price, qty} or [] if unavailable.
-    """
-    params = {
-        "by": "section+row+price+quantity",
-        "show": "places+sections",
-        "embed": ["offer", "description"],
-        "q": "available",
-        "apikey": apikey,
-        "limit": 400,
-    }
-    try:
-        data = http_get_json(ISM_URL.format(eid=eid), params)
-    except urllib.error.HTTPError as e:
-        log("ISM facets unavailable (HTTP {}). Falling back to event-wide "
-            "min/max only.".format(e.code))
-        return []
-    except Exception as e:
-        log("ISM facets failed ({}). Falling back to event-wide min/max only."
-            .format(e))
-        return []
-
-    # Build offerId -> price map from the embedded offers, if present.
-    offers = {}
-    embedded = data.get("_embedded") or {}
-    for off in (embedded.get("offer") or []):
-        oid = off.get("offerId") or off.get("id")
-        price = None
-        for field in ("totalPrice", "listPrice", "faceValue", "price"):
-            v = off.get(field)
-            if isinstance(v, (int, float)):
-                price = float(v)
-                break
-            if isinstance(v, dict) and isinstance(v.get("value"), (int, float)):
-                price = float(v["value"])
-                break
-        if oid and price is not None:
-            offers[oid] = price
-
-    listings = []
-    for facet in (data.get("facets") or []):
-        secs = facet.get("section") or []
-        rows = facet.get("row") or []
-        qty = facet.get("count") or facet.get("quantity") or 0
-
-        price = None
-        raw_price = facet.get("price")
-        if isinstance(raw_price, list) and raw_price:
-            nums = [float(p) for p in raw_price
-                    if isinstance(p, (int, float))]
-            if nums:
-                price = min(nums)
-        elif isinstance(raw_price, (int, float)):
-            price = float(raw_price)
-        if price is None:
-            oprices = [offers[o] for o in (facet.get("offers") or [])
-                       if o in offers]
-            if oprices:
-                price = min(oprices)
-        if price is None:
-            continue
-
-        listings.append({
-            "section": str(secs[0]) if secs else "?",
-            "row": str(rows[0]) if rows else "?",
-            "price": round(price, 2),
-            "qty": int(qty) if isinstance(qty, (int, float)) else 0,
-        })
-
-    log("ISM facets returned {} priced listings.".format(len(listings)))
-    return listings
+    return []
 
 
 # -------------------------------------------------------------- history/state
