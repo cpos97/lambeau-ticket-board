@@ -48,7 +48,10 @@ jobs:
         run: |
           git config user.name  "ticket-watch"
           git config user.email "actions@github.com"
-          for f in history.jsonl state.json latest.json dashboard.html; do
+          # dashboard.html is regenerated from template.html on every run and
+          # rebuilt fresh for _site, so it is deliberately NOT committed --
+          # committing it just races with local edits to the template.
+          for f in history.jsonl state.json latest.json; do
             [ -f "$f" ] && git add "$f"
           done
           git diff --staged --quiet || git commit -m "scan: $(date -u '+%Y-%m-%d %H:%M UTC')"
