@@ -72,27 +72,45 @@ a{color:inherit}
 
 .wrap{max-width:1120px; margin:0 auto; padding:0 24px 96px; position:relative; z-index:1}
 
-/* ---------- matchup banner (unchanged) ---------- */
-.banner{position:relative; overflow:hidden; margin:0 0 32px; color:#fff; z-index:1;
-  background:var(--dal-navy); border-bottom:3px solid var(--gb-gold)}
-.banner::before{content:""; position:absolute; inset:0; background:var(--gb-green);
-  clip-path:polygon(0 0, 58% 0, 42% 100%, 0 100%)}
+/* ---------- matchup banner ---------- */
+.banner{position:relative; z-index:1; overflow:hidden; margin:0 0 44px;
+  color:#fff; isolation:isolate}
+/* team-colour washes bled into each other over the photo, no hard edge */
+.banner::before{content:""; position:absolute; inset:0; z-index:-1;
+  background:
+    linear-gradient(104deg,
+      rgba(20,48,36,.90) 0%, rgba(20,48,36,.66) 30%,
+      rgba(6,18,14,.50) 50%,
+      rgba(4,30,66,.66) 70%, rgba(4,30,66,.90) 100%),
+    linear-gradient(to bottom,
+      rgba(4,10,8,.62) 0%, rgba(4,10,8,.30) 42%, rgba(4,10,8,.78) 100%)}
+/* gold hairline that fades out at both ends */
+.banner::after{content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
+  background:linear-gradient(90deg, transparent 0%, var(--gb-gold) 16%,
+    var(--gb-gold) 84%, transparent 100%); opacity:.9}
 .banner-inner{position:relative; max-width:1120px; margin:0 auto;
-  padding:34px 24px 30px; display:flex; align-items:center;
-  justify-content:space-between; gap:16px; flex-wrap:wrap}
-.team{display:flex; flex-direction:column; gap:2px; min-width:0}
+  padding:64px 24px 30px; display:flex; align-items:center;
+  justify-content:space-between; gap:20px; flex-wrap:wrap}
+.team{display:flex; flex-direction:column; gap:6px; min-width:0}
 .team.away{text-align:right; margin-left:auto}
-.team-city{font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; opacity:.72}
+.team-city{font-size:.66rem; letter-spacing:.26em; text-transform:uppercase;
+  color:rgba(255,255,255,.6); font-weight:500}
 .team-name{font-family:"Big Shoulders Display","Public Sans",sans-serif;
-  font-weight:800; font-size:clamp(2.1rem,6vw,3.4rem); line-height:.92}
+  font-weight:800; font-size:clamp(2.5rem,7.5vw,4.4rem); line-height:.88;
+  letter-spacing:-.008em; text-shadow:0 2px 30px rgba(0,0,0,.6)}
 .team.home .team-name{color:var(--gb-gold)}
-.team.away .team-name{color:#C9D2DB}
-.vs{font-family:"Big Shoulders Display",sans-serif; font-weight:500;
-  font-size:1.1rem; letter-spacing:.3em; opacity:.6; padding:0 4px}
-.kick{width:100%; display:flex; gap:22px; flex-wrap:wrap; align-items:baseline;
-  padding-top:18px; margin-top:16px; border-top:1px solid rgba(255,255,255,.18);
-  font-size:.83rem; letter-spacing:.04em}
-.kick span{opacity:.85}
+.team.away .team-name{color:#EAF0F6}
+.vs{font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:.66rem;
+  letter-spacing:.24em; color:rgba(255,255,255,.42);
+  border:1px solid rgba(255,255,255,.18); border-radius:999px;
+  padding:6px 12px; backdrop-filter:blur(6px)}
+.kick{width:100%; display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  padding-top:26px; margin-top:26px;
+  border-top:1px solid rgba(255,255,255,.13); font-size:.78rem}
+.kick span{display:inline-flex; align-items:center; gap:7px;
+  color:rgba(255,255,255,.72); padding:5px 12px; border-radius:999px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
+  backdrop-filter:blur(8px); letter-spacing:.02em}
 .kick b{font-weight:600; color:var(--gb-gold)}
 
 /* ---------- status strip ---------- */
