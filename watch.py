@@ -41,6 +41,8 @@ DISCOVERY_URL = "https://app.ticketmaster.com/discovery/v2/events/{eid}.json"
 SEARCH_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 SEATGEEK_URL = "https://api.seatgeek.com/2/events"
 GAMETIME_URL = "https://mobile.gametime.co/v1/search"
+EBAY_TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
+EBAY_SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
 ISM_URL = "https://services.ticketmaster.com/api/ismds/event/{eid}/facets"
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " \
@@ -71,6 +73,8 @@ def load_config():
 
     cfg["ticketmaster_api_key"] = os.environ.get("TM_API_KEY", "").strip()
     cfg["seatgeek_client_id"] = os.environ.get("SG_CLIENT_ID", "").strip()
+    cfg["ebay_client_id"] = os.environ.get("EBAY_CLIENT_ID", "").strip()
+    cfg["ebay_client_secret"] = os.environ.get("EBAY_CLIENT_SECRET", "").strip()
     ec = cfg.setdefault("email", {})
     ec["app_password"] = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
     ec["from_address"] = os.environ.get("EMAIL_FROM", "").strip()
@@ -203,6 +207,76 @@ def fetch_discovery(eid, apikey):
         "onsale_end": sales.get("endDateTime"),
         "sale_tbd": bool(sales.get("startTBD") or sales.get("startTBA")),
     }
+
+
+def fetch_ebay(cfg):
+    """eBay's official Browse API. Free, but needs an app credential pair from
+    developer.ebay.com -- eBay blocks unauthenticated automated requests."""
+    cid = cfg.get("ebay_client_id")
+    secret = cfg.get("ebay_client_secret")
+    if not cid or not secret:
+        return None
+
+    import base64
+    basic = base64.b64encode("{}:{}".format(cid, secret).encode()).decode()
+    body = urllib.parse.urlencode({
+        "grant_type": "client_credentials",
+        "scope": "https://api.ebay.com/oauth/api_scope",
+    }).encode()
+    req = urllib.request.Request(EBAY_TOKEN_URL, data=body, headers={
+        "Authorization": "Basic " + basic,
+        "Content-Type": "application/x-www-form-urlencoded",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=25,
+                                    context=ssl.create_default_context()) as r:
+            token = json.loads(r.read().decode())["access_token"]
+    except Exception as e:
+        log("eBay auth failed: {}".format(e))
+        return None
+
+    url = EBAY_SEARCH_URL + "?" + urllib.parse.urlencode({
+        "q": "Packers Cowboys tickets October 18 2026",
+        "category_ids": "1305",          # Sports Tickets
+        "filter": "buyingOptions:{FIXED_PRICE}",
+        "limit": 50,
+        "sort": "price",
+    })
+    req = urllib.request.Request(url, headers={
+        "Authorization": "Bearer " + token,
+        "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=25,
+                                    context=ssl.create_default_context()) as r:
+            data = json.loads(r.read().decode())
+    except Exception as e:
+        log("eBay search failed: {}".format(e))
+        return None
+
+    prices = []
+    for it in (data.get("itemSummaries") or []):
+        title = (it.get("title") or "").lower()
+        if "packer" not in title:
+            continue
+        if any(w in title for w in ("parking", "replica", "helmet", "jersey",
+                                    "card", "stub", "photo", "poster")):
+            continue
+        pv = ((it.get("price") or {}).get("value"))
+        try:
+            prices.append(float(pv))
+        except (TypeError, ValueError):
+            continue
+    if not prices:
+        log("eBay: no matching ticket listings.")
+        return None
+
+    out = {"source": "eBay", "title": "eBay ticket listings",
+           "low": round(min(prices), 2), "high": round(max(prices), 2),
+           "count": len(prices),
+           "url": "https://www.ebay.com/sch/i.html?_nkw=packers+cowboys+tickets"}
+    log("eBay: {} listings | low ${:.2f}".format(out["count"], out["low"]))
+    return out
 
 
 def fetch_gametime(cfg):
@@ -610,11 +684,10 @@ def main():
         log("Discovery: {} | status={} | ${} - ${}".format(
             discovery.get("name"), discovery.get("status"),
             discovery.get("min_price"), discovery.get("max_price")))
-    listings = fetch_ism_listings(eid, key)
-
-    if not discovery and not listings and not seatgeek and not gametime:
-        log("No data retrieved from any source. Nothing to evaluate.")
-        return
+    fetch_ism_listings(eid, key)  # always [] on a developer key; see docstring
+    seatgeek = fetch_seatgeek(cfg.get("seatgeek_client_id"), cfg)
+    gametime = fetch_gametime(cfg)
+    ebay = fetch_ebay(cfg)
 
     listings = []
     sources = []
@@ -622,6 +695,10 @@ def main():
         listings.append({"section": "Gametime", "row": "cheapest",
                          "price": float(gametime["low"]), "qty": 0})
         sources.append(gametime)
+    if ebay and isinstance(ebay.get("low"), (int, float)):
+        listings.append({"section": "eBay", "row": "cheapest",
+                         "price": float(ebay["low"]), "qty": 0})
+        sources.append(ebay)
     if seatgeek and isinstance(seatgeek.get("low"), (int, float)):
         listings.append({"section": "SeatGeek", "row": "cheapest",
                          "price": float(seatgeek["low"]), "qty": 0})
@@ -668,6 +745,7 @@ def main():
             "event_url": (discovery or {}).get("url"),
             "seatgeek": seatgeek,
             "gametime": gametime,
+            "ebay": ebay,
             "sources": sources,
             "status": (discovery or {}).get("status"),
             "onsale_start": (discovery or {}).get("onsale_start"),

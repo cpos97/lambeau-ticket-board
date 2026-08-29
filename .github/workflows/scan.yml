@@ -35,6 +35,8 @@ jobs:
         env:
           TM_API_KEY:          ${{ secrets.TM_API_KEY }}
           SG_CLIENT_ID:        ${{ secrets.SG_CLIENT_ID }}
+          EBAY_CLIENT_ID:      ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET:  ${{ secrets.EBAY_CLIENT_SECRET }}
           GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
           EMAIL_FROM:          ${{ secrets.EMAIL_FROM }}
           EMAIL_TO:            ${{ secrets.EMAIL_TO }}

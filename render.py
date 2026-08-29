@@ -18,6 +18,18 @@ TIER_TOKEN = {
     "steal":  ("--dal-silver", "#8B98A6"),
 }
 
+SOURCE_STATUS = [
+    ("Gametime",    "live",    "Scanned every 30 min. No account needed."),
+    ("SeatGeek",    "needkey", "Official API. Add SG_CLIENT_ID to switch on."),
+    ("eBay",        "needkey", "Official Browse API. Add EBAY_CLIENT_ID + SECRET."),
+    ("Ticketmaster","partial", "On-sale status only. Resale needs their internal service token."),
+    ("StubHub",     "blocked", "Partner credentials required."),
+    ("TickPick",    "blocked", "No public API."),
+    ("Vivid Seats", "blocked", "No public API."),
+    ("Craigslist",  "blocked", "Blocks automated requests (HTTP 403)."),
+    ("FB Marketplace","blocked","Requires account login; automated access prohibited."),
+]
+
 SITES = [
     ("Ticketmaster", "Official + verified resale. The scanner reads this one.",
      "https://www.ticketmaster.com/green-bay-packers-vs-dallas-cowboys-green-bay-wisconsin-10-18-2026/event/0700646BCF6088AD"),
@@ -153,12 +165,11 @@ def build_chart(history):
             continue
         token, fallback = TIER_TOKEN[key]
         series.append({"label": key, "points": pts, "token": token,
-                       "fallback": fallback, "fill": key == "premium"})
+                       "fallback": fallback, "fill": key == "target"})
         legend.append(
             '<span><span class="swatch" style="background:var({})"></span>{}</span>'
-            .format(token, esc({"premium": "Lower bowl sideline",
-                                "good": "Lower bowl (any)",
-                                "steal": "Cheapest anywhere"}[key])))
+            .format(token, esc({"target": "Cheapest seat",
+                                "steal": "Mispost threshold"}.get(key, key))))
 
     body = ('<canvas id="spark" role="img" aria-label="Lowest ticket price by '
             'tier across every scan"></canvas><div class="legend">{}</div>'
@@ -281,6 +292,25 @@ def build_table(latest):
     return "".join(out)
 
 
+def build_source_status(latest):
+    live = {(s_.get("source") or "") for s_ in ((latest or {}).get("sources") or [])}
+    dot = {"live": "ok", "needkey": "wait", "partial": "wait", "blocked": "off"}
+    label = {"live": "Live", "needkey": "Needs key",
+             "partial": "Partial", "blocked": "Unavailable"}
+    rows = []
+    for name, st, note in SOURCE_STATUS:
+        if name in live:
+            st = "live"
+        rows.append(
+            '<tr><td><b>{}</b></td>'
+            '<td><span class="dot {}" style="display:inline-block;margin-right:8px">'
+            '</span>{}</td><td style="color:var(--ink-3)">{}</td></tr>'.format(
+                esc(name), dot[st], label[st], esc(note)))
+    return ('<table><thead><tr><th>Source</th><th>Status</th>'
+            '<th>Detail</th></tr></thead><tbody>{}</tbody></table>'
+            .format("".join(rows)))
+
+
 def build_sites():
     return "\n".join(
         '<a class="card site" href="{u}" target="_blank" rel="noopener noreferrer">'
@@ -341,6 +371,7 @@ def main():
         "__LISTING_NOTE__": esc(listing_note),
         "__LISTINGS_TABLE__": build_table(latest),
         "__RANGE_PANEL__": build_range(latest),
+        "__SOURCE_STATUS__": build_source_status(latest),
         "__SITE_LINKS__": build_sites(),
         "__GENERATED__": esc(datetime.now().strftime("%b %-d, %Y at %-I:%M %p")),
         "__DATA_JSON__": json.dumps(chart_data),

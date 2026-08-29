@@ -53,6 +53,26 @@ Three independent alert tiers:
 - **steal** — any section, alerts under `$90` or on a drop of more than 45%
   below the 7-day low. This is the mispost catcher.
 
+## Source coverage
+
+Every site was tested individually, not assumed.
+
+| Source | Status | Detail |
+|---|---|---|
+| **Gametime** | Live | Unauthenticated endpoint. Working now, no account needed. |
+| **SeatGeek** | Needs key | Official Platform API. Free key at seatgeek.com/account/develop → `SG_CLIENT_ID` |
+| **eBay** | Needs key | Official Browse API. Free app at developer.ebay.com → `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` |
+| Ticketmaster | Partial | Discovery API gives on-sale status only. Resale lives behind an internal `X-Service-Token` issued only to their own apps. |
+| StubHub | Unavailable | Partner credentials required. |
+| TickPick | Unavailable | No public API. |
+| Vivid Seats | Unavailable | No public API; site returns an SPA shell. |
+| Craigslist | Unavailable | Blocks automated requests (HTTP 403). |
+| Facebook Marketplace | Unavailable | Requires account login; automated collection prohibited by Meta's terms. |
+
+The unavailable ones are reachable only by defeating bot protection or
+forging client credentials. This project does not do that. Use the
+cross-check links on the board to check those by hand.
+
 ## What it does not do
 
 Only Ticketmaster is scanned. StubHub, SeatGeek, Vivid Seats, TickPick and

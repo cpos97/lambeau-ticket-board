@@ -1,5 +1,8 @@
 {
-  "all_time_low": {},
+  "all_time_low": {
+    "target": 428.0,
+    "steal": 428.0
+  },
   "last_alert": {},
   "last_status": "offsale"
 }
