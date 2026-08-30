@@ -1,30 +1,34 @@
 {
-  "ts": "2026-08-30T19:43:26.422346+00:00",
+  "ts": "2026-08-30T19:58:36.520593+00:00",
   "tier_lows": {
-    "target": 428.0,
-    "steal": 428.0
+    "target": 405.0,
+    "steal": 405.0
   },
   "event_min": null,
   "event_max": null,
   "event_url": "https://www.ticketmaster.com/green-bay-packers-vs-dallas-cowboys-green-bay-wisconsin-10-18-2026/event/0700646BCF6088AD",
   "seatgeek": null,
-  "gametime": {
-    "source": "Gametime",
-    "title": "Dallas Cowboys at Green Bay Packers (Sunday Night Football)",
-    "low": 428.0,
-    "low_prefee": 382.0,
-    "high": null,
-    "url": "https://gametime.co/search?q=packers%20cowboys"
+  "ticketnetwork": {
+    "source": "TicketNetwork",
+    "title": "Green Bay Packers vs. Dallas Cowboys",
+    "low": 405.0,
+    "avg": 744.0,
+    "high": 3111.0,
+    "count": null,
+    "basis": "listing price before fees",
+    "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx"
   },
   "ebay": null,
   "sources": [
     {
-      "source": "Gametime",
-      "title": "Dallas Cowboys at Green Bay Packers (Sunday Night Football)",
-      "low": 428.0,
-      "low_prefee": 382.0,
-      "high": null,
-      "url": "https://gametime.co/search?q=packers%20cowboys"
+      "source": "TicketNetwork",
+      "title": "Green Bay Packers vs. Dallas Cowboys",
+      "low": 405.0,
+      "avg": 744.0,
+      "high": 3111.0,
+      "count": null,
+      "basis": "listing price before fees",
+      "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx"
     }
   ],
   "status": "offsale",
@@ -32,11 +36,21 @@
   "sale_tbd": true,
   "listings": [
     {
-      "section": "Gametime",
+      "section": "TicketNetwork",
       "row": "cheapest",
-      "price": 428.0,
-      "qty": 0
+      "price": 405.0,
+      "qty": 0,
+      "is_best": false
     }
   ],
-  "alerts": []
+  "alerts": [
+    {
+      "tier": "target",
+      "label": "Cheapest seat",
+      "low": 405.0,
+      "reasons": [
+        "new low since tracking began (was $428.00)"
+      ]
+    }
+  ]
 }

@@ -1,8 +1,10 @@
 {
   "all_time_low": {
-    "target": 428.0,
-    "steal": 428.0
+    "target": 405.0,
+    "steal": 405.0
   },
-  "last_alert": {},
+  "last_alert": {
+    "target:405.00": "2026-08-30T19:58:36.520313+00:00"
+  },
   "last_status": "offsale"
 }
