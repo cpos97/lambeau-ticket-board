@@ -773,17 +773,19 @@ def main():
             })
         state["last_status"] = status
 
-    append_history({
-        "ts": now().isoformat(),
-        "tier_lows": tier_lows,
-        "event_min": (discovery or {}).get("min_price"),
-        "event_max": (discovery or {}).get("max_price"),
-        "listing_count": len(listings),
-    })
-    save_state(state)
-
-    with open(LATEST_PATH, "w") as fh:
-        json.dump({
+    if dry:
+        log("--dry-run: not writing history/state/latest.")
+    else:
+        append_history({
+            "ts": now().isoformat(),
+            "tier_lows": tier_lows,
+            "event_min": (discovery or {}).get("min_price"),
+            "event_max": (discovery or {}).get("max_price"),
+            "listing_count": len(listings),
+        })
+        save_state(state)
+        with open(LATEST_PATH, "w") as fh:
+            json.dump({
             "ts": now().isoformat(),
             "tier_lows": tier_lows,
             "event_min": (discovery or {}).get("min_price"),
