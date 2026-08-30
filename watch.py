@@ -569,15 +569,22 @@ def build_email_body(cfg, alerts, discovery):
             lines.append("  * {}".format(r))
         lines.append("  {} qualifying listing(s). Cheapest:".format(a["count"]))
         for m in a["listings"]:
-            star = "  <-- prime sideline" if m.get("is_best") else ""
-            lines.append("    ${:>8.2f}   Sec {:<6} Row {:<5} qty {}{}".format(
-                m["price"], m["section"], m["row"], m["qty"] or "?", star))
+            where = m.get("section") or "?"
+            if m.get("row") in ("cheapest", "-", None):
+                lines.append("    ${:>8.2f}   via {}".format(m["price"], where))
+            else:
+                lines.append("    ${:>8.2f}   Sec {:<6} Row {:<5} qty {}".format(
+                    m["price"], where, m["row"], m["qty"] or "?"))
         lines.append("-" * 62)
 
     lines.append("")
-    lines.append("Ticketmaster data only. Before buying, cross-check the same "
-                 "seats on StubHub, SeatGeek, Vivid Seats and TickPick -- "
-                 "resale prices there often differ.")
+    lines.append("Scanned sources: Gametime (live), plus SeatGeek and eBay when "
+                 "their keys are set. StubHub, TickPick, Vivid Seats and "
+                 "Ticketmaster resale have no public price feed, so check those "
+                 "by hand before buying -- prices for the same seats often "
+                 "differ 20-40% between sites.")
+    lines.append("")
+    lines.append("Board: https://cpos97.github.io/lambeau-ticket-board/")
     lines.append("")
     lines.append("Checked at {} UTC".format(now().strftime("%Y-%m-%d %H:%M")))
     return "\n".join(lines)
