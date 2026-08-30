@@ -55,23 +55,33 @@ Three independent alert tiers:
 
 ## Source coverage
 
-Every site was tested individually, not assumed.
+Every site was tested individually, not assumed. 74 endpoints probed.
 
 | Source | Status | Detail |
 |---|---|---|
-| **Gametime** | Live | Unauthenticated endpoint. Working now, no account needed. |
-| **SeatGeek** | Needs key | Official Platform API. Free key at seatgeek.com/account/develop → `SG_CLIENT_ID` |
-| **eBay** | Needs key | Official Browse API. Free app at developer.ebay.com → `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` |
-| Ticketmaster | Partial | Discovery API gives on-sale status only. Resale lives behind an internal `X-Service-Token` issued only to their own apps. |
-| StubHub | Unavailable | Partner credentials required. |
-| TickPick | Unavailable | No public API. |
-| Vivid Seats | Unavailable | No public API; site returns an SPA shell. |
-| Craigslist | Unavailable | Blocks automated requests (HTTP 403). |
-| Facebook Marketplace | Unavailable | Requires account login; automated collection prohibited by Meta's terms. |
+| **TicketNetwork / Ticket Liquidator** | Live | Public catalog API (`tn-apis.com`). No robots.txt restrictions. Currently $405 low / $744 avg / $3,111 high. |
+| **SeatGeek** | Needs key | Official Platform API, free: seatgeek.com/account/develop → `SG_CLIENT_ID` |
+| **eBay** | Needs key | Official Browse API, free: developer.ebay.com → `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` |
+| Ticketmaster | Partial | Discovery gives on-sale status only. Resale sits behind an `X-Service-Token` issued only to their own apps. |
+| Gametime | Removed | Its endpoint is open and returned good data, but `mobile.gametime.co/robots.txt` is `Disallow: /`. Removed on those grounds. |
+| StubHub · TickPick · Vivid Seats | Unavailable | Partner credentials or no public API. |
+| Craigslist · Reddit | Unavailable | Both return 403 to automated requests. |
+| Facebook Marketplace | Unavailable | Requires account login. |
 
-The unavailable ones are reachable only by defeating bot protection or
-forging client credentials. This project does not do that. Use the
-cross-check links on the board to check those by hand.
+### On the TicketNetwork key
+
+The scanner uses a `consumerKey` that TicketNetwork publishes in plaintext
+inside its own affiliate widget script, which exists to be copied onto
+third-party sites. It is not a secret and no access control was bypassed to
+get it. For a setup that is durably yours, join their free affiliate program
+and set `TN_CONSUMER_KEY` / `TN_WEBSITE_CONFIG_ID`:
+https://www.ticketnetwork.com/en/affiliate-signup
+
+### A note on price basis
+
+TicketNetwork quotes **listing price before fees**. Gametime quoted all-in.
+Expect the final checkout number to run roughly 15-25% above the figure on
+the board.
 
 ## What it does not do
 

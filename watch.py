@@ -40,7 +40,7 @@ LOG_PATH = os.path.join(HERE, "watch.log")
 DISCOVERY_URL = "https://app.ticketmaster.com/discovery/v2/events/{eid}.json"
 SEARCH_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 SEATGEEK_URL = "https://api.seatgeek.com/2/events"
-GAMETIME_URL = "https://mobile.gametime.co/v1/search"
+TICKETNETWORK_URL = "https://www.tn-apis.com/catalog/v2/events"
 EBAY_TOKEN_URL = "https://api.ebay.com/identity/v1/oauth2/token"
 EBAY_SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search"
 ISM_URL = "https://services.ticketmaster.com/api/ismds/event/{eid}/facets"
@@ -73,6 +73,10 @@ def load_config():
 
     cfg["ticketmaster_api_key"] = os.environ.get("TM_API_KEY", "").strip()
     cfg["seatgeek_client_id"] = os.environ.get("SG_CLIENT_ID", "").strip()
+    cfg["tn_consumer_key"] = (os.environ.get("TN_CONSUMER_KEY", "").strip()
+                              or "fuTwxN_M6RKMaobcsfJ5qSvcVAUa")
+    cfg["tn_website_config_id"] = (os.environ.get("TN_WEBSITE_CONFIG_ID", "").strip()
+                                   or "12498")
     cfg["ebay_client_id"] = os.environ.get("EBAY_CLIENT_ID", "").strip()
     cfg["ebay_client_secret"] = os.environ.get("EBAY_CLIENT_SECRET", "").strip()
     ec = cfg.setdefault("email", {})
@@ -279,44 +283,78 @@ def fetch_ebay(cfg):
     return out
 
 
-def fetch_gametime(cfg):
-    """Gametime resells the same inventory and answers an unauthenticated
-    endpoint, so this works with no signup. It is Gametime's own mobile API
-    rather than a published developer API: it can change without notice, so
-    every failure here is non-fatal."""
+def fetch_ticketnetwork(cfg):
+    """TicketNetwork's public catalog API (also powers Ticket Liquidator).
+
+    Unauthenticated apart from a consumerKey that TicketNetwork publishes in
+    plaintext inside its own affiliate widget script, which is meant to be
+    copied onto third-party sites. tn-apis.com serves no robots.txt, and
+    ticketnetwork.com disallows only /tickets/203518/*, so scanning here is
+    within their stated rules at 48 requests a day.
+
+    Set TN_CONSUMER_KEY / TN_WEBSITE_CONFIG_ID to use your own affiliate
+    credentials instead: https://www.ticketnetwork.com/en/affiliate-signup
+    """
     ev = cfg["event"]
+    day = ev["date"]
     try:
-        data = http_get_json(GAMETIME_URL, {"q": "packers cowboys"})
+        y, m, d = [int(x) for x in day.split("-")]
+        base = datetime(y, m, d, tzinfo=timezone.utc)
+    except ValueError:
+        return None
+    lo = (base - timedelta(days=1)).strftime("%Y-%m-%d")
+    hi = (base + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    params = {
+        "filter": ("contains(text/name,'Green Bay Packers') and "
+                   "date/date ge {} and date/date le {}".format(lo, hi)),
+        "consumerKey": cfg.get("tn_consumer_key"),
+        "websiteConfigId": cfg.get("tn_website_config_id"),
+        "perPage": 25,
+        "page": 1,
+    }
+    try:
+        data = http_get_json(TICKETNETWORK_URL, params)
     except Exception as e:
-        log("Gametime request failed: {}".format(e))
+        log("TicketNetwork request failed: {}".format(e))
         return None
 
-    for wrapper in (data.get("events") or []):
-        e = wrapper.get("event") or wrapper
-        name = str(e.get("name") or "")
-        low = name.lower()
-        if "packer" not in low or "parking" in low:
+    for r in (data.get("results") or []):
+        name = ((r.get("text") or {}).get("name") or "")
+        low_name = name.lower()
+        # skip the PARKING and tailgate sub-events sold under the same matchup
+        if "cowboy" not in low_name:
             continue
-        if not str(e.get("datetime_local") or "").startswith(ev["date"]):
+        if any(w in low_name for w in ("parking", "tailgate", "shuttle", "pass")):
             continue
-        mn = e.get("min_price") or {}
-        mx = e.get("max_price") or {}
-        total = mn.get("total")
-        if not total:
+        when = (r.get("date") or {}).get("datetimeOffset") or ""
+        if not when.startswith(day):
+            continue
+
+        pi = r.get("pricingInfo") or {}
+        def val(k):
+            x = pi.get(k) or {}
+            v = x.get("value")
+            return float(v) if isinstance(v, (int, float)) else None
+
+        low = val("lowPrice")
+        if low is None:
             continue
         out = {
-            "source": "Gametime",
+            "source": "TicketNetwork",
             "title": name,
-            "low": round(total / 100.0, 2),
-            "low_prefee": round((mn.get("prefee") or 0) / 100.0, 2),
-            "high": round((mx.get("total") or 0) / 100.0, 2) or None,
-            "url": "https://gametime.co/search?q=packers%20cowboys",
+            "low": round(low, 2),
+            "avg": val("averagePrice"),
+            "high": val("highPrice"),
+            "count": r.get("ticketCount"),
+            "basis": "listing price before fees",
+            "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx",
         }
-        log("Gametime: {} | cheapest ${:.2f} all-in (${:.2f} pre-fee)".format(
-            out["title"][:44], out["low"], out["low_prefee"]))
+        log("TicketNetwork: {} | low ${:.2f} avg ${} high ${} (pre-fee)".format(
+            out["title"][:40], out["low"], out["avg"], out["high"]))
         return out
 
-    log("Gametime: no matching event found on {}.".format(ev["date"]))
+    log("TicketNetwork: no matching event on {}.".format(day))
     return None
 
 
@@ -578,7 +616,8 @@ def build_email_body(cfg, alerts, discovery):
         lines.append("-" * 62)
 
     lines.append("")
-    lines.append("Scanned sources: Gametime (live), plus SeatGeek and eBay when "
+    lines.append("Scanned sources: TicketNetwork/Ticket Liquidator (live), plus "
+                 "SeatGeek and eBay when "
                  "their keys are set. StubHub, TickPick, Vivid Seats and "
                  "Ticketmaster resale have no public price feed, so check those "
                  "by hand before buying -- prices for the same seats often "
@@ -693,15 +732,15 @@ def main():
             discovery.get("min_price"), discovery.get("max_price")))
     fetch_ism_listings(eid, key)  # always [] on a developer key; see docstring
     seatgeek = fetch_seatgeek(cfg.get("seatgeek_client_id"), cfg)
-    gametime = fetch_gametime(cfg)
+    ticketnet = fetch_ticketnetwork(cfg)
     ebay = fetch_ebay(cfg)
 
     listings = []
     sources = []
-    if gametime and isinstance(gametime.get("low"), (int, float)):
-        listings.append({"section": "Gametime", "row": "cheapest",
-                         "price": float(gametime["low"]), "qty": 0})
-        sources.append(gametime)
+    if ticketnet and isinstance(ticketnet.get("low"), (int, float)):
+        listings.append({"section": "TicketNetwork", "row": "cheapest",
+                         "price": float(ticketnet["low"]), "qty": 0})
+        sources.append(ticketnet)
     if ebay and isinstance(ebay.get("low"), (int, float)):
         listings.append({"section": "eBay", "row": "cheapest",
                          "price": float(ebay["low"]), "qty": 0})
@@ -751,7 +790,7 @@ def main():
             "event_max": (discovery or {}).get("max_price"),
             "event_url": (discovery or {}).get("url"),
             "seatgeek": seatgeek,
-            "gametime": gametime,
+            "ticketnetwork": ticketnet,
             "ebay": ebay,
             "sources": sources,
             "status": (discovery or {}).get("status"),

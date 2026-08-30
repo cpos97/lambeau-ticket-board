@@ -19,15 +19,23 @@ TIER_TOKEN = {
 }
 
 SOURCE_STATUS = [
-    ("Gametime",    "live",    "Scanned every 30 min. No account needed."),
-    ("SeatGeek",    "needkey", "Official API. Add SG_CLIENT_ID to switch on."),
-    ("eBay",        "needkey", "Official Browse API. Add EBAY_CLIENT_ID + SECRET."),
-    ("Ticketmaster","partial", "On-sale status only. Resale needs their internal service token."),
-    ("StubHub",     "blocked", "Partner credentials required."),
-    ("TickPick",    "blocked", "No public API."),
-    ("Vivid Seats", "blocked", "No public API."),
-    ("Craigslist",  "blocked", "Blocks automated requests (HTTP 403)."),
-    ("FB Marketplace","blocked","Requires account login; automated access prohibited."),
+    ("TicketNetwork / Ticket Liquidator", "live",
+     "Scanned every 30 min. Public catalog API, no robots restrictions."),
+    ("SeatGeek", "needkey",
+     "Official Platform API. Add SG_CLIENT_ID to switch on."),
+    ("eBay", "needkey",
+     "Official Browse API. Add EBAY_CLIENT_ID + EBAY_CLIENT_SECRET."),
+    ("Ticketmaster", "partial",
+     "On-sale status only. Resale needs a service token issued to their own apps."),
+    ("Gametime", "blocked",
+     "Endpoint is open but robots.txt is Disallow: / \u2014 removed for that reason."),
+    ("StubHub", "blocked", "Partner credentials required."),
+    ("TickPick", "blocked", "No public API."),
+    ("Vivid Seats", "blocked", "No public API; site returns an app shell."),
+    ("Craigslist", "blocked", "Blocks automated requests (HTTP 403)."),
+    ("Reddit", "blocked", "API closed to unauthenticated access (HTTP 403)."),
+    ("FB Marketplace", "blocked",
+     "Requires account login; automated collection prohibited."),
 ]
 
 SITES = [
