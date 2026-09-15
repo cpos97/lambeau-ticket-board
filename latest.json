@@ -1,5 +1,5 @@
 {
-  "ts": "2026-09-14T22:37:41.171931+00:00",
+  "ts": "2026-09-15T01:09:14.805538+00:00",
   "tier_lows": {
     "target": 410.0,
     "steal": 410.0
@@ -12,8 +12,8 @@
     "source": "TicketNetwork",
     "title": "Green Bay Packers vs. Dallas Cowboys",
     "low": 410.0,
-    "avg": 826.0,
-    "high": 3084.0,
+    "avg": 829.0,
+    "high": 3144.0,
     "count": null,
     "basis": "listing price before fees",
     "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx"
@@ -24,8 +24,8 @@
       "source": "TicketNetwork",
       "title": "Green Bay Packers vs. Dallas Cowboys",
       "low": 410.0,
-      "avg": 826.0,
-      "high": 3084.0,
+      "avg": 829.0,
+      "high": 3144.0,
       "count": null,
       "basis": "listing price before fees",
       "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx"
