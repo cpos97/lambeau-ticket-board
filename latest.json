@@ -1,5 +1,5 @@
 {
-  "ts": "2026-09-16T16:05:24.649543+00:00",
+  "ts": "2026-09-16T19:37:54.565454+00:00",
   "tier_lows": {
     "target": 388.0,
     "steal": 388.0
@@ -39,19 +39,8 @@
       "section": "TicketNetwork",
       "row": "cheapest",
       "price": 388.0,
-      "qty": 0,
-      "is_best": false
+      "qty": 0
     }
   ],
-  "alerts": [
-    {
-      "tier": "target",
-      "label": "Cheapest seat",
-      "low": 388.0,
-      "reasons": [
-        "at or below your $400 target",
-        "new low since tracking began (was $398.00)"
-      ]
-    }
-  ]
+  "alerts": []
 }
