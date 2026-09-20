@@ -1,8 +1,8 @@
 {
-  "ts": "2026-09-19T22:23:01.180772+00:00",
+  "ts": "2026-09-20T00:14:15.964502+00:00",
   "tier_lows": {
-    "target": 378.0,
-    "steal": 378.0
+    "target": 384.0,
+    "steal": 384.0
   },
   "event_min": null,
   "event_max": null,
@@ -11,7 +11,7 @@
   "ticketnetwork": {
     "source": "TicketNetwork",
     "title": "Green Bay Packers vs. Dallas Cowboys",
-    "low": 378.0,
+    "low": 384.0,
     "avg": 853.0,
     "high": 9959.0,
     "count": null,
@@ -23,7 +23,7 @@
     {
       "source": "TicketNetwork",
       "title": "Green Bay Packers vs. Dallas Cowboys",
-      "low": 378.0,
+      "low": 384.0,
       "avg": 853.0,
       "high": 9959.0,
       "count": null,
@@ -38,9 +38,19 @@
     {
       "section": "TicketNetwork",
       "row": "cheapest",
-      "price": 378.0,
-      "qty": 0
+      "price": 384.0,
+      "qty": 0,
+      "is_best": false
     }
   ],
-  "alerts": []
+  "alerts": [
+    {
+      "tier": "target",
+      "label": "Cheapest seat",
+      "low": 384.0,
+      "reasons": [
+        "at or below your $400 target"
+      ]
+    }
+  ]
 }
