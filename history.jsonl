@@ -263,3 +263,4 @@
 {"ts": "2026-10-11T18:16:49.926731+00:00", "tier_lows": {"target": 238.0, "steal": 238.0}, "event_min": null, "event_max": null, "listing_count": 1}
 {"ts": "2026-10-11T22:15:43.379963+00:00", "tier_lows": {"target": 283.0, "steal": 283.0}, "event_min": null, "event_max": null, "listing_count": 1}
 {"ts": "2026-10-12T01:31:26.914727+00:00", "tier_lows": {"target": 283.0, "steal": 283.0}, "event_min": null, "event_max": null, "listing_count": 1}
+{"ts": "2026-10-12T08:34:23.004750+00:00", "tier_lows": {"target": 283.0, "steal": 283.0}, "event_min": null, "event_max": null, "listing_count": 1}
