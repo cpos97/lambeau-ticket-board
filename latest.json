@@ -1,16 +1,64 @@
 {
-  "ts": "2026-10-15T06:10:33.038979+00:00",
-  "tier_lows": {},
+  "ts": "2026-10-15T11:53:28.337176+00:00",
+  "tier_lows": {
+    "target": 209.0,
+    "steal": 209.0
+  },
   "event_min": null,
   "event_max": null,
   "event_url": "https://www.ticketmaster.com/green-bay-packers-vs-dallas-cowboys-green-bay-wisconsin-10-18-2026/event/0700646BCF6088AD",
   "seatgeek": null,
-  "ticketnetwork": null,
+  "ticketnetwork": {
+    "source": "TicketNetwork",
+    "title": "Green Bay Packers vs. Dallas Cowboys",
+    "low": 209.0,
+    "avg": 612.0,
+    "high": 6336.0,
+    "count": null,
+    "basis": "listing price before fees",
+    "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx"
+  },
   "ebay": null,
-  "sources": [],
+  "sources": [
+    {
+      "source": "TicketNetwork",
+      "title": "Green Bay Packers vs. Dallas Cowboys",
+      "low": 209.0,
+      "avg": 612.0,
+      "high": 6336.0,
+      "count": null,
+      "basis": "listing price before fees",
+      "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx"
+    }
+  ],
   "status": "offsale",
   "onsale_start": null,
   "sale_tbd": true,
-  "listings": [],
-  "alerts": []
+  "listings": [
+    {
+      "section": "TicketNetwork",
+      "row": "cheapest",
+      "price": 209.0,
+      "qty": 0,
+      "is_best": false
+    }
+  ],
+  "alerts": [
+    {
+      "tier": "target",
+      "label": "Cheapest seat",
+      "low": 209.0,
+      "reasons": [
+        "at or below your $400 target"
+      ]
+    },
+    {
+      "tier": "steal",
+      "label": "Possible mispost",
+      "low": 209.0,
+      "reasons": [
+        "at or below your $225 target"
+      ]
+    }
+  ]
 }
