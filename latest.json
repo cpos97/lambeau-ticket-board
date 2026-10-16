@@ -1,5 +1,5 @@
 {
-  "ts": "2026-10-15T22:58:26.487868+00:00",
+  "ts": "2026-10-16T01:05:37.941642+00:00",
   "tier_lows": {
     "target": 176.0,
     "steal": 176.0
@@ -12,7 +12,7 @@
     "source": "TicketNetwork",
     "title": "Green Bay Packers vs. Dallas Cowboys",
     "low": 176.0,
-    "avg": 556.0,
+    "avg": 561.0,
     "high": 6336.0,
     "count": null,
     "basis": "listing price before fees",
@@ -24,7 +24,7 @@
       "source": "TicketNetwork",
       "title": "Green Bay Packers vs. Dallas Cowboys",
       "low": 176.0,
-      "avg": 556.0,
+      "avg": 561.0,
       "high": 6336.0,
       "count": null,
       "basis": "listing price before fees",
