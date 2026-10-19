@@ -1,8 +1,8 @@
 {
-  "ts": "2026-10-18T23:27:33.230268+00:00",
+  "ts": "2026-10-19T01:32:05.745953+00:00",
   "tier_lows": {
-    "target": 187.0,
-    "steal": 187.0
+    "target": 92.0,
+    "steal": 92.0
   },
   "event_min": null,
   "event_max": null,
@@ -11,9 +11,9 @@
   "ticketnetwork": {
     "source": "TicketNetwork",
     "title": "Green Bay Packers vs. Dallas Cowboys",
-    "low": 187.0,
-    "avg": 414.0,
-    "high": 1443.0,
+    "low": 92.0,
+    "avg": 278.0,
+    "high": 651.0,
     "count": null,
     "basis": "listing price before fees",
     "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx"
@@ -23,22 +23,22 @@
     {
       "source": "TicketNetwork",
       "title": "Green Bay Packers vs. Dallas Cowboys",
-      "low": 187.0,
-      "avg": 414.0,
-      "high": 1443.0,
+      "low": 92.0,
+      "avg": 278.0,
+      "high": 651.0,
       "count": null,
       "basis": "listing price before fees",
       "url": "https://www.ticketliquidator.com/tix/green-bay-packers-tickets.aspx"
     }
   ],
-  "status": "onsale",
+  "status": "offsale",
   "onsale_start": "2026-07-27T15:00:00Z",
   "sale_tbd": false,
   "listings": [
     {
       "section": "TicketNetwork",
       "row": "cheapest",
-      "price": 187.0,
+      "price": 92.0,
       "qty": 0,
       "is_best": false
     }
@@ -47,15 +47,16 @@
     {
       "tier": "target",
       "label": "Cheapest seat",
-      "low": 187.0,
+      "low": 92.0,
       "reasons": [
-        "at or below your $400 target"
+        "at or below your $400 target",
+        "new low since tracking began (was $153.00)"
       ]
     },
     {
       "tier": "steal",
       "label": "Possible mispost",
-      "low": 187.0,
+      "low": 92.0,
       "reasons": [
         "at or below your $225 target"
       ]
